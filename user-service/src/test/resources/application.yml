@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: test
+    password: test
+    publisher-confirm-type: correlated
+    publisher-returns: true
+
+jwt:
+  secret:
+    key: "dGVzdC1vbnNlamUtanRzLXNlY3JldC1rZXktMTIzNDU2Nzg5MA=="
+
+google:
+  client:
+    id: "GOOGLE_CLIENT_ID"
+    secret: "TEST_GOOGLE_CLIENT_SECRET"
+  redirect:
+    uri: "TEST_GOOGLE_REDIRECT_URI"
+  token:
+    uri: "TEST_GOOGLE_TOKEN_URI"
+  userinfo:
+    uri: "TEST_GOOGLE_USER_INFO"
+
+chrome:
+  extension:
+    id: "TEST_CHROME_EXTENSION_ID"
