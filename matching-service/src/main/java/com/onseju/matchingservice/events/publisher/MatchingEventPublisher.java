@@ -18,14 +18,14 @@ public class MatchingEventPublisher extends AbstractEventPublisher<MatchedEvent>
         super(rabbitTemplate);
     }
 
-	@Override
+    @Override
     protected void validateEvent(MatchedEvent event) {
         if (event == null || event.id() == null) {
             throw new IllegalArgumentException("Invalid order event");
         }
     }
 
-	@Override
+    @Override
     protected void doPublish(MatchedEvent event) {
         try {
             publishAfterMatchingEventToOrderSevice(event);
@@ -36,12 +36,12 @@ public class MatchingEventPublisher extends AbstractEventPublisher<MatchedEvent>
         }
     }
 
-	private void publishAfterMatchingEventToOrderSevice(MatchedEvent event){
-		sendMessage(
-			RabbitMQConfig.ONSEJU_MATCHING_EXCHANGE,
-			RabbitMQConfig.MATCHING_RESULT_KEY,
-			event,
-			"matchingResult - " + event.id()
-		);
-	}
+    private void publishAfterMatchingEventToOrderSevice(MatchedEvent event) {
+        sendMessage(
+                RabbitMQConfig.ONSEJU_MATCHING_EXCHANGE,
+                RabbitMQConfig.MATCHING_RESULT_KEY,
+                event,
+                "matchingResult - " + event.id()
+        );
+    }
 }

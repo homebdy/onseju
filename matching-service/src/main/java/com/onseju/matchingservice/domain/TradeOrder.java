@@ -15,7 +15,7 @@ public class TradeOrder {
 
 	private final Long id;
 
-	private final String companyCode;
+	private final CompanyCode companyCode;
 
 	private Type type;
 
@@ -56,6 +56,10 @@ public class TradeOrder {
 
 	public boolean isSellType() {
 		return type.isSell();
+	}
+
+	public boolean isBuyType() {
+		return !type.isSell();
 	}
 
 	public BigDecimal calculateMatchQuantity(final TradeOrder other) {

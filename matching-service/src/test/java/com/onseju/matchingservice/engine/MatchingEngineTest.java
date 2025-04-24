@@ -1,10 +1,10 @@
 package com.onseju.matchingservice.engine;
 
+import com.onseju.matchingservice.domain.CompanyCode;
 import com.onseju.matchingservice.domain.OrderStatus;
 import com.onseju.matchingservice.domain.TradeOrder;
 import com.onseju.matchingservice.domain.Type;
 import com.onseju.matchingservice.events.MatchedEvent;
-import com.onseju.matchingservice.events.OrderBookSyncedEvent;
 import com.onseju.matchingservice.events.publisher.EventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,12 +30,9 @@ class MatchingEngineTest {
     @Mock
     private EventPublisher<MatchedEvent> matchedEventPublisher;
 
-    @Mock
-    private EventPublisher<OrderBookSyncedEvent> orderBookSyncedEventEventPublisher;
-
     @BeforeEach
     void setUp() {
-        matchingEngine = new MatchingEngine(matchedEventPublisher, orderBookSyncedEventEventPublisher);
+        matchingEngine = new MatchingEngine(matchedEventPublisher);
     }
 
     @Test
@@ -95,7 +92,7 @@ class MatchingEngineTest {
                 .type(type)
                 .price(price)
                 .accountId(accountId)
-                .companyCode("005930")
+                .companyCode(new CompanyCode("005930"))
                 .status(OrderStatus.ACTIVE)
                 .totalQuantity(quantity)
                 .remainingQuantity(new AtomicReference<>(quantity))

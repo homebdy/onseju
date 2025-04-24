@@ -19,15 +19,12 @@ public class MatchingEventListener {
 	private final EventMapper eventMapper;
 
 	/**
-	 * 주문 검증 이벤트 처리
-	 * 유저 서비스에서 주문 검증이 완료되면 실제 매칭 프로세스 시작
+	 * 주문 생성 이벤트 수신
 	 */
 	@RabbitListener(queues = RabbitMQConfig.MATCHING_REQUEST_QUEUE)
 	public void handleOrderEvent(OrderCreatedEvent event) {
-		// 주문 생성
 		final TradeOrder order = eventMapper.toTradeOrder(event);
 
-		// 검증 완료된 주문을 매칭 엔진에 전달하여 매칭 시작
 		matchingEngine.processOrder(order);
 	}
 }

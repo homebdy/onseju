@@ -1,9 +1,5 @@
 package com.onseju.orderservice.events.listener;
 
-import com.onseju.orderservice.tradehistory.service.TradeHistoryNotificationService;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Component;
-
 import com.onseju.orderservice.chart.service.ChartService;
 import com.onseju.orderservice.events.MatchedEvent;
 import com.onseju.orderservice.events.OrderBookSyncedEvent;
@@ -14,9 +10,10 @@ import com.onseju.orderservice.order.service.OrderService;
 import com.onseju.orderservice.tradehistory.domain.TradeHistory;
 import com.onseju.orderservice.tradehistory.mapper.TradeHistoryMapper;
 import com.onseju.orderservice.tradehistory.service.TradeHistoryService;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Component;
 
 /**
  * 주문 서비스의 체결 이벤트 리스너
@@ -35,7 +32,7 @@ public class MatchedEventListener {
 
 	private final ChartService chartService;
 
-	private final TradeHistoryNotificationService tradeHistoryNotificationService;
+//	private final TradeHistoryNotificationService tradeHistoryNotificationService;
 
 	/**
 	 * 주문 매칭 이벤트 처리
@@ -63,7 +60,7 @@ public class MatchedEventListener {
 		orderService.publishUserUpdateEvent(event);
 
 		// 사용자에게 체결 완료 알람 발송
-		tradeHistoryNotificationService.sendNotification(event);
+//		tradeHistoryNotificationService.sendNotification(event);
 	}
 
 	/**

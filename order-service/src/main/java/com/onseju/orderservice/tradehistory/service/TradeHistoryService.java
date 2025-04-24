@@ -27,10 +27,9 @@ public class TradeHistoryService {
 	private final TradeHistoryMapper tradeHistoryMapper;
 
 	/**
-	 * 거래 내역 저장 (일반 사용자)
+	 * 거래 내역 저장
 	 */
 	public void saveTradeHistory(final TradeHistory tradeHistory) {
-		// DB 저장
 		tradeHistoryRepository.save(tradeHistory);
 		log.info("거래 내역 저장");
 	}

@@ -1,20 +1,16 @@
 package com.onseju.orderservice.ki.client;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.net.URI;
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.onseju.orderservice.chart.service.ChartService;
+import com.onseju.orderservice.global.utils.TsidGenerator;
+import com.onseju.orderservice.ki.dto.KIStockDto;
+import com.onseju.orderservice.ki.dto.KIStockHogaDto;
+import com.onseju.orderservice.order.domain.Type;
+import com.onseju.orderservice.order.dto.BeforeTradeOrderDto;
+import com.onseju.orderservice.order.service.OrderService;
+import com.onseju.orderservice.tradehistory.domain.TradeHistory;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -32,18 +28,20 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
-import com.onseju.orderservice.chart.service.ChartService;
-import com.onseju.orderservice.global.utils.TsidGenerator;
-import com.onseju.orderservice.ki.dto.KIStockDto;
-import com.onseju.orderservice.ki.dto.KIStockHogaDto;
-import com.onseju.orderservice.order.domain.Type;
-import com.onseju.orderservice.order.dto.BeforeTradeOrderDto;
-import com.onseju.orderservice.order.service.OrderService;
-import com.onseju.orderservice.tradehistory.domain.TradeHistory;
-
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.net.URI;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 한국투자증권 WebSocket 클라이언트
@@ -99,21 +97,21 @@ public class KIWebSocketClient {
 	 * 주식 데이터와 호가 데이터 각각에 대한 승인키를 발급하고 만료 시간 설정
 	 */
 	public void generateApprovalKeys() {
-		try {
-			// 주식 데이터용 승인키 발급
-			stockApprovalKey = generateApprovalKey(appKey_1, secretKey_1);
-
-			// 호가 데이터용 승인키 발급
-			hogaApprovalKey = generateApprovalKey(appKey_2, secretKey_2);
-
-			// 토큰 만료 시간 설정 (1일)
-			tokenExpireTime = Instant.now().plusSeconds(24 * 60 * 60).toEpochMilli();
-
-			log.info("한국투자증권 API 승인키 발급 완료");
-		} catch (Exception e) {
-			log.error("승인키 발급 실패", e);
-			throw new RuntimeException("한국투자증권 API 승인키 발급 실패", e);
-		}
+//		try {
+//			// 주식 데이터용 승인키 발급
+//			stockApprovalKey = generateApprovalKey(appKey_1, secretKey_1);
+//
+//			// 호가 데이터용 승인키 발급
+//			hogaApprovalKey = generateApprovalKey(appKey_2, secretKey_2);
+//
+//			// 토큰 만료 시간 설정 (1일)
+//			tokenExpireTime = Instant.now().plusSeconds(24 * 60 * 60).toEpochMilli();
+//
+//			log.info("한국투자증권 API 승인키 발급 완료");
+//		} catch (Exception e) {
+//			log.error("승인키 발급 실패", e);
+//			throw new RuntimeException("한국투자증권 API 승인키 발급 실패", e);
+//		}
 	}
 
 	/**

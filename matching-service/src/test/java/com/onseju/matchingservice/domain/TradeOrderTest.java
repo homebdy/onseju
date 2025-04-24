@@ -18,7 +18,7 @@ class TradeOrderTest {
     void setUp() {
         buyOrder = TradeOrder.builder()
                 .id(1L)
-                .companyCode("ABC")
+                .companyCode(new CompanyCode("005930"))
                 .type(Type.LIMIT_BUY)
                 .status(OrderStatus.ACTIVE)
                 .totalQuantity(BigDecimal.valueOf(100))
@@ -29,7 +29,7 @@ class TradeOrderTest {
 
         sellOrder = TradeOrder.builder()
                 .id(2L)
-                .companyCode("ABC")
+                .companyCode(new CompanyCode("005930"))
                 .type(Type.LIMIT_SELL)
                 .status(OrderStatus.ACTIVE)
                 .totalQuantity(BigDecimal.valueOf(50))

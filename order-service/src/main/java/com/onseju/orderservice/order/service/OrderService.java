@@ -1,14 +1,6 @@
 package com.onseju.orderservice.order.service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.onseju.orderservice.company.service.ClosingPriceService;
+import com.onseju.orderservice.company.domain.Company;
 import com.onseju.orderservice.company.service.repository.CompanyRepository;
 import com.onseju.orderservice.events.MatchedEvent;
 import com.onseju.orderservice.events.OrderBookSyncedEvent;
@@ -16,7 +8,6 @@ import com.onseju.orderservice.events.OrderCreatedEvent;
 import com.onseju.orderservice.events.publisher.EventPublisher;
 import com.onseju.orderservice.global.response.ApiResponse;
 import com.onseju.orderservice.global.utils.TsidGenerator;
-import com.onseju.orderservice.order.OrderConstant;
 import com.onseju.orderservice.order.client.UserServiceClient;
 import com.onseju.orderservice.order.controller.resposne.OrderResponse;
 import com.onseju.orderservice.order.domain.Order;
@@ -28,9 +19,14 @@ import com.onseju.orderservice.order.exception.PriceOutOfRangeException;
 import com.onseju.orderservice.order.mapper.OrderMapper;
 import com.onseju.orderservice.order.service.repository.OrderRepository;
 import com.onseju.orderservice.order.service.validator.OrderValidator;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -44,7 +40,6 @@ public class OrderService {
 	private final UserServiceClient userServiceClient;
 	private final OrderMapper orderMapper;
 	private final TsidGenerator tsidGenerator;
-	private final ClosingPriceService closingPriceService;
 
 	private final SimpMessagingTemplate messagingTemplate;
 
@@ -81,34 +76,13 @@ public class OrderService {
 	 */
 	private void validateOrder(final BigDecimal price, final String companyCode) {
 		// 호가 단위 검증
+		Company company = companyRepository.findByIsuSrtCd(companyCode);
 		OrderValidator validator = OrderValidator.getUnitByPrice(price);
 		validator.isValidPrice(price);
 
-		// 전날 종가 검증
-		final BigDecimal closingPrice = closingPriceService.getClosingPrice(companyCode);
-
-		if (!isWithinClosingPriceRange(closingPrice, price)) {
+		if (!company.isWithinClosingPriceRange(price)) {
 			throw new PriceOutOfRangeException();
 		}
-	}
-
-	private boolean isWithinClosingPriceRange(final BigDecimal closingPrice, final BigDecimal price) {
-		final BigDecimal percentageDivisor = new BigDecimal(100);
-		final BigDecimal priceLimit = BigDecimal.valueOf(OrderConstant.CLOSING_PRICE_LIMIT.getValue());
-
-		final BigDecimal lowerBound = calculatePriceLimit(closingPrice, percentageDivisor, priceLimit.negate());
-		final BigDecimal upperBound = calculatePriceLimit(closingPrice, percentageDivisor, priceLimit);
-
-		return price.compareTo(lowerBound) >= 0 && price.compareTo(upperBound) <= 0;
-	}
-
-	private BigDecimal calculatePriceLimit(
-			final BigDecimal closingPrice,
-			final BigDecimal percentageDivisor,
-			final BigDecimal priceLimit
-	) {
-		return closingPrice.multiply(new BigDecimal(100).add(priceLimit))
-				.divide(percentageDivisor, RoundingMode.HALF_UP);
 	}
 
 	// 외부의 user-service와 rest 통신
