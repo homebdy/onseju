@@ -78,7 +78,6 @@ public class BuyOrderBookTest {
     }
 
 
-
     @Test
     @DisplayName("지정가 매도 주문 시, 일치하는 가격의 매수 주문과 부분 체결될 수 있다.")
     void testPartialOrderExecution() {
@@ -107,7 +106,7 @@ public class BuyOrderBookTest {
     void buyOrderImbalance() {
         // given
         for (int i = 0; i < 5; i++) {
-            TradeOrder buyOrder = createOrder((long)i, Type.LIMIT_BUY, new BigDecimal("50000"), new BigDecimal("5"),
+            TradeOrder buyOrder = createOrder((long) i, Type.LIMIT_BUY, new BigDecimal("50000"), new BigDecimal("5"),
                     1L);
             buyOrderBook.add(buyOrder);
         }

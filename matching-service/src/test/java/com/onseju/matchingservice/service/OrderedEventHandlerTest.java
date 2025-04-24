@@ -21,39 +21,39 @@ import java.util.concurrent.TimeUnit;
 @SpringBootTest
 class OrderedEventHandlerTest {
 
-	@Autowired
+    @Autowired
     MatchingEventListener matchingEventListener;
 
-	@Autowired
-	EventMapper eventMapper;
+    @Autowired
+    EventMapper eventMapper;
 
-	@Autowired
-	MatchingEngine matchingEngine;
+    @Autowired
+    MatchingEngine matchingEngine;
 
-	@Test
-	@DisplayName("이벤트를 전달받아 비동기로 처리한다.")
-	void handleOrderEventShouldProcessOrder() {
-		// given
-		OrderCreatedEvent orderedEvent = new OrderCreatedEvent(
-				UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
-				1L,
-				"005930",
-				Type.LIMIT_BUY,
-				OrderStatus.ACTIVE,
-				new BigDecimal(100),
-				new BigDecimal(100),
-				new BigDecimal(100),
-				Instant.now().toEpochMilli(),
-				1L
-		);
+    @Test
+    @DisplayName("이벤트를 전달받아 비동기로 처리한다.")
+    void handleOrderEventShouldProcessOrder() {
+        // given
+        OrderCreatedEvent orderedEvent = new OrderCreatedEvent(
+                UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+                1L,
+                "005930",
+                Type.LIMIT_BUY,
+                OrderStatus.ACTIVE,
+                new BigDecimal(100),
+                new BigDecimal(100),
+                new BigDecimal(100),
+                Instant.now().toEpochMilli(),
+                1L
+        );
 
-		// when
-		CompletableFuture.runAsync(() -> matchingEventListener.handleOrderEvent(orderedEvent))
-				.orTimeout(2, TimeUnit.SECONDS) // 비동기 실행을 기다림
-				.join();
+        // when
+        CompletableFuture.runAsync(() -> matchingEventListener.handleOrderEvent(orderedEvent))
+                .orTimeout(2, TimeUnit.SECONDS) // 비동기 실행을 기다림
+                .join();
 
-		// then
-		Assertions.assertThatCode(() -> matchingEngine.processOrder(eventMapper.toTradeOrder(orderedEvent)))
-				.doesNotThrowAnyException();
-	}
+        // then
+        Assertions.assertThatCode(() -> matchingEngine.processOrder(eventMapper.toTradeOrder(orderedEvent)))
+                .doesNotThrowAnyException();
+    }
 }

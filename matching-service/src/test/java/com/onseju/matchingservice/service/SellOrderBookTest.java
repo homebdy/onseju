@@ -105,7 +105,7 @@ public class SellOrderBookTest {
     void sellOrderImbalance() {
         // given
         for (int i = 0; i < 5; i++) {
-            TradeOrder sellOrder = createOrder((long)i, Type.LIMIT_SELL, new BigDecimal("50000"),
+            TradeOrder sellOrder = createOrder((long) i, Type.LIMIT_SELL, new BigDecimal("50000"),
                     new BigDecimal("5"), 1L);
             sellOrderBook.add(sellOrder);
         }

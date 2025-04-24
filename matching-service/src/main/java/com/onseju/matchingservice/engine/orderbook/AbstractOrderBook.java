@@ -12,11 +12,15 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
+ * OrderBook: 주식 시장의 모든 매도 및 매수 주문을 저장하는 저장소
  * 매수/매도 주문 호가창의 공통 로직을 담당하는 추상 클래스.
  */
 public abstract class AbstractOrderBook {
 
-    // 가격을 기준으로 정렬된 주문 저장소. Comparator는 하위 클래스에서 매수/매도 기준에 따라 전달함.
+    /**
+     * 가격을 기준으로 정렬된 주문 저장소
+     * Comparator는 하위 클래스에서 매수/매도 기준에 따라 전달
+     */
     protected final ConcurrentSkipListMap<Price, OrderStorage> elements;
 
     /**

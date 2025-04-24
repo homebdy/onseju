@@ -4,25 +4,25 @@ import java.util.Objects;
 
 public class CompanyCode {
 
-    private final String companyCode;
+    private final String value;
 
-    public CompanyCode(String companyCode) {
-        this.companyCode = companyCode;
+    public CompanyCode(String value) {
+        this.value = value;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         CompanyCode that = (CompanyCode) o;
-        return companyCode.equals(that.companyCode);
+        return value.equals(that.value);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(companyCode);
+        return Objects.hashCode(value);
     }
 
     public String getCompanyCode() {
-        return companyCode;
+        return value;
     }
 }

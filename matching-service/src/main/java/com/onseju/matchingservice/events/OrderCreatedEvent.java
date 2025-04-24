@@ -7,15 +7,15 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record OrderCreatedEvent(
-		UUID id,
-		Long orderId,
-		String companyCode,
-		Type type,
-		OrderStatus status,
-		BigDecimal totalQuantity,
-		BigDecimal remainingQuantity,
-		BigDecimal price,
-		Long timestamp,
-		Long accountId
+        UUID id,
+        Long orderId,
+        String companyCode,
+        Type type,
+        OrderStatus status,
+        BigDecimal totalQuantity,
+        BigDecimal remainingQuantity,
+        BigDecimal price,
+        Long timestamp,
+        Long accountId
 ) {
 }
