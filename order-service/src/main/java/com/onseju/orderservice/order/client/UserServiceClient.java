@@ -1,16 +1,13 @@
 package com.onseju.orderservice.order.client;
 
-import org.springframework.stereotype.Service;
-
-import net.devh.boot.grpc.client.inject.GrpcClient;
-
-import com.onseju.orderservice.grpc.GrpcValidateResponse;
 import com.onseju.orderservice.grpc.GrpcValidateRequest;
+import com.onseju.orderservice.grpc.GrpcValidateResponse;
 import com.onseju.orderservice.grpc.OrderValidationServiceGrpc;
-import com.onseju.orderservice.order.dto.BeforeTradeOrderDto;
 import com.onseju.orderservice.order.dto.OrderValidationResponse;
-
+import com.onseju.orderservice.order.service.dto.OrderCreateCommand;
 import lombok.AllArgsConstructor;
+import net.devh.boot.grpc.client.inject.GrpcClient;
+import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
 @Service
@@ -19,16 +16,16 @@ public class UserServiceClient {
 	@GrpcClient("order-service")
 	private OrderValidationServiceGrpc.OrderValidationServiceBlockingStub orderValidationServiceBlockingStub;
 
-	public OrderValidationResponse validateOrder(BeforeTradeOrderDto dto) {
+	public OrderValidationResponse validateOrder(OrderCreateCommand command) {
 
 		try {
 
 			GrpcValidateRequest request = GrpcValidateRequest.newBuilder()
-				.setCompanyCode(dto.companyCode())
-				.setType(dto.type())
-				.setTotalQuantity(dto.totalQuantity().toPlainString())
-				.setPrice(dto.price().toPlainString())
-				.setMemberId(dto.memberId())
+				.setCompanyCode(command.companyCode())
+				.setType(command.type().name())
+				.setTotalQuantity(command.totalQuantity().toPlainString())
+				.setPrice(command.price().toPlainString())
+				.setMemberId(command.memberId())
 				.build();
 
 			GrpcValidateResponse response = orderValidationServiceBlockingStub.validateOrder(request);

@@ -1,31 +1,29 @@
 package com.onseju.orderservice.events.publisher;
 
+import com.onseju.orderservice.events.dto.CreatedOrderEvent;
+import com.onseju.orderservice.events.exception.OrderEventPublisherFailException;
+import com.onseju.orderservice.global.config.RabbitMQConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
-import com.onseju.orderservice.events.OrderCreatedEvent;
-import com.onseju.orderservice.events.exception.OrderEventPublisherFailException;
-import com.onseju.orderservice.global.config.RabbitMQConfig;
-
-import lombok.extern.slf4j.Slf4j;
-
 @Component
 @Slf4j
-public class OrderEventPublisher extends AbstractEventPublisher<OrderCreatedEvent> {
+public class CreatedOrderEventPublisher extends AbstractEventPublisher<CreatedOrderEvent> {
 
-    public OrderEventPublisher(RabbitTemplate rabbitTemplate) {
+    public CreatedOrderEventPublisher(RabbitTemplate rabbitTemplate) {
         super(rabbitTemplate);
     }
 
     @Override
-    protected void validateEvent(OrderCreatedEvent event) {
+    protected void validateEvent(CreatedOrderEvent event) {
         if (event == null || event.id() == null) {
             throw new IllegalArgumentException("Invalid order event");
         }
     }
 
     @Override
-    protected void doPublish(OrderCreatedEvent event) {
+    protected void doPublish(CreatedOrderEvent event) {
         try {
             publishOrderCreatedEventToOrderService(event);
             publishOrderCreatedEventToMatchingEngine(event);
@@ -35,7 +33,7 @@ public class OrderEventPublisher extends AbstractEventPublisher<OrderCreatedEven
         }
     }
 
-    private void publishOrderCreatedEventToOrderService(OrderCreatedEvent event) {
+    private void publishOrderCreatedEventToOrderService(CreatedOrderEvent event) {
         sendMessage(
             RabbitMQConfig.ONSEJU_EXCHANGE,
             RabbitMQConfig.ORDER_CREATED_KEY,
@@ -44,7 +42,7 @@ public class OrderEventPublisher extends AbstractEventPublisher<OrderCreatedEven
         );
     }
 
-    private void publishOrderCreatedEventToMatchingEngine(OrderCreatedEvent event) {
+    private void publishOrderCreatedEventToMatchingEngine(CreatedOrderEvent event) {
         sendMessage(
             RabbitMQConfig.ONSEJU_MATCHING_EXCHANGE,
             RabbitMQConfig.MATCHING_REQUEST_KEY,

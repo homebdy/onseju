@@ -1,25 +1,25 @@
 package com.onseju.orderservice.order.mapper;
 
-import java.math.BigDecimal;
+import com.onseju.orderservice.events.dto.CreatedOrderEvent;
+import com.onseju.orderservice.events.dto.MatchedOrderUpdateEvent;
+import com.onseju.orderservice.order.controller.resposne.OrderResponse;
+import com.onseju.orderservice.order.domain.Order;
+import com.onseju.orderservice.order.domain.OrderStatus;
+import com.onseju.orderservice.order.dto.MatchedOrderUpdateDto;
+import com.onseju.orderservice.order.service.dto.OrderCreateCommand;
+import org.springframework.stereotype.Component;
+
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.stereotype.Component;
-
-import com.onseju.orderservice.events.OrderCreatedEvent;
-import com.onseju.orderservice.order.domain.Order;
-import com.onseju.orderservice.order.domain.OrderStatus;
-import com.onseju.orderservice.order.domain.Type;
-import com.onseju.orderservice.order.dto.AfterTradeOrderDto;
-import com.onseju.orderservice.order.dto.BeforeTradeOrderDto;
-
 @Component
 public class OrderMapper {
-	public Order toEntity(final Long orderId, final BeforeTradeOrderDto dto, final Long accountId) {
+
+	public Order toEntity(final Long orderId, final OrderCreateCommand dto, final Long accountId) {
 		return Order.builder()
 				.id(orderId)
 				.companyCode(dto.companyCode())
-				.type(Type.valueOf(dto.type()))
+				.type(dto.type())
 				.totalQuantity(dto.totalQuantity())
 				.remainingQuantity(dto.totalQuantity())
 				.status(OrderStatus.ACTIVE)
@@ -29,7 +29,7 @@ public class OrderMapper {
 				.build();
 	}
 
-	public Order toEntity(final OrderCreatedEvent event) {
+	public Order toEntity(final CreatedOrderEvent event) {
 		return Order.builder()
 				.id(event.orderId())
 				.companyCode(event.companyCode())
@@ -43,8 +43,8 @@ public class OrderMapper {
 				.build();
 	}
 
-	public OrderCreatedEvent toEvent(final Order order) {
-		return OrderCreatedEvent.builder()
+	public CreatedOrderEvent toCreatedOrderEvent(final Order order) {
+		return CreatedOrderEvent.builder()
 				.id(UUID.randomUUID())
 				.orderId(order.getId())
 				.companyCode(order.getCompanyCode())
@@ -58,10 +58,24 @@ public class OrderMapper {
 				.build();
 	}
 
-	public AfterTradeOrderDto toAfterTradeOrderDto(final Long orderId, final BigDecimal quantity) {
-		return AfterTradeOrderDto.builder()
-				.orderId(orderId)
-				.quantity(quantity)
-				.build();
+	public MatchedOrderUpdateEvent toMatchedOrderUpdateEvent(final Order order, final MatchedOrderUpdateDto dto) {
+		return new MatchedOrderUpdateEvent(
+				UUID.randomUUID(),
+				order.getCompanyCode(),
+				order.getAccountId(),
+				dto.quantity(),
+				dto.price(),
+				dto.tradeAt()
+		);
+	}
+
+	public OrderResponse toOrderResponse(final Order order) {
+		return new OrderResponse(
+				order.getId(),
+				order.getCompanyCode(),
+				order.getType(),
+				order.getTotalQuantity(),
+				order.getPrice()
+		);
 	}
 }

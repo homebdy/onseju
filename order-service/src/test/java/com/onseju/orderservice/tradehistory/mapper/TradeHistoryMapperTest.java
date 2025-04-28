@@ -1,6 +1,6 @@
 package com.onseju.orderservice.tradehistory.mapper;
 
-import com.onseju.orderservice.events.MatchedEvent;
+import com.onseju.orderservice.events.dto.MatchedEvent;
 import com.onseju.orderservice.tradehistory.domain.TradeHistory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

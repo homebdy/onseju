@@ -1,6 +1,6 @@
 package com.onseju.orderservice.tradehistory.service;
 
-import com.onseju.orderservice.events.MatchedEvent;
+import com.onseju.orderservice.events.dto.MatchedEvent;
 import com.onseju.orderservice.grpc.MemberReaderServiceGrpc;
 import com.onseju.orderservice.order.client.MemberReaderClient;
 import com.onseju.orderservice.order.domain.Order;

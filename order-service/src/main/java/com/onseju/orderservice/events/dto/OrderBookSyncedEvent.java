@@ -1,11 +1,10 @@
-package com.onseju.orderservice.events;
+package com.onseju.orderservice.events.dto;
+
+import com.onseju.orderservice.order.dto.PriceLevelDto;
+import lombok.Builder;
 
 import java.util.List;
 import java.util.UUID;
-
-import com.onseju.orderservice.order.dto.PriceLevelDto;
-
-import lombok.Builder;
 
 @Builder
 public record OrderBookSyncedEvent(

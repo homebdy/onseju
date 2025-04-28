@@ -1,6 +1,6 @@
 package com.onseju.orderservice.tradehistory.mapper;
 
-import com.onseju.orderservice.events.MatchedEvent;
+import com.onseju.orderservice.events.dto.MatchedEvent;
 import com.onseju.orderservice.order.domain.Order;
 import com.onseju.orderservice.tradehistory.domain.TradeHistory;
 import com.onseju.orderservice.tradehistory.dto.TradeHistoryResponse;

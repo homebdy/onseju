@@ -2,11 +2,10 @@ package com.onseju.orderservice.order.dto;
 
 import java.math.BigDecimal;
 
-import lombok.Builder;
-
-@Builder
-public record AfterTradeOrderDto(
+public record MatchedOrderUpdateDto(
 		Long orderId,
-		BigDecimal quantity
+		BigDecimal quantity,
+		BigDecimal price,
+		Long tradeAt
 ) {
 }

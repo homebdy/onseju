@@ -1,9 +1,7 @@
 package com.onseju.orderservice.events.listener;
 
-import com.onseju.orderservice.events.OrderCreatedEvent;
+import com.onseju.orderservice.events.dto.CreatedOrderEvent;
 import com.onseju.orderservice.global.config.RabbitMQConfig;
-import com.onseju.orderservice.order.domain.Order;
-import com.onseju.orderservice.order.mapper.OrderMapper;
 import com.onseju.orderservice.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,15 +15,13 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OrderEventListener {
+public class CreatedOrderEventListener {
 
 	private final OrderService orderService;
-	private final OrderMapper orderMapper;
 
 	@RabbitListener(queues = RabbitMQConfig.ORDER_CREATED_QUEUE)
-	public void handleOrderCreated(final OrderCreatedEvent event) {
+	public void handleOrderCreated(final CreatedOrderEvent event) {
 		log.info("OrderCreatedEvent received: {}", event);
-		Order order = orderMapper.toEntity(event);
-		orderService.saveOrder(order);
+		orderService.save(event);
 	}
 }

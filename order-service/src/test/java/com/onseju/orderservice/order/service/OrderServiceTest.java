@@ -1,35 +1,35 @@
 package com.onseju.orderservice.order.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
-import java.math.BigDecimal;
-
+import com.onseju.orderservice.company.service.ClosingPriceService;
+import com.onseju.orderservice.events.publisher.CreatedOrderEventPublisher;
+import com.onseju.orderservice.events.publisher.MatchedEventPublisher;
+import com.onseju.orderservice.fake.FakeOrderRepository;
+import com.onseju.orderservice.global.utils.TsidGenerator;
+import com.onseju.orderservice.order.client.UserServiceClient;
+import com.onseju.orderservice.order.controller.resposne.OrderResponse;
+import com.onseju.orderservice.order.domain.Type;
+import com.onseju.orderservice.order.dto.OrderValidationResponse;
+import com.onseju.orderservice.order.exception.OrderPriceQuotationException;
+import com.onseju.orderservice.order.exception.PriceOutOfRangeException;
+import com.onseju.orderservice.order.mapper.OrderMapper;
+import com.onseju.orderservice.order.service.dto.OrderCreateCommand;
+import com.onseju.orderservice.stub.StubCompanyRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 
-import com.onseju.orderservice.company.service.ClosingPriceService;
-import com.onseju.orderservice.events.publisher.MatchedEventPublisher;
-import com.onseju.orderservice.events.publisher.OrderEventPublisher;
-import com.onseju.orderservice.fake.FakeOrderRepository;
-import com.onseju.orderservice.global.response.ApiResponse;
-import com.onseju.orderservice.global.utils.TsidGenerator;
-import com.onseju.orderservice.order.client.UserServiceClient;
-import com.onseju.orderservice.order.controller.resposne.OrderResponse;
-import com.onseju.orderservice.order.domain.Type;
-import com.onseju.orderservice.order.dto.BeforeTradeOrderDto;
-import com.onseju.orderservice.order.dto.OrderValidationResponse;
-import com.onseju.orderservice.order.exception.OrderPriceQuotationException;
-import com.onseju.orderservice.order.exception.PriceOutOfRangeException;
-import com.onseju.orderservice.order.mapper.OrderMapper;
-import com.onseju.orderservice.stub.StubCompanyRepository;
+import java.math.BigDecimal;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 class OrderServiceTest {
 
@@ -37,7 +37,7 @@ class OrderServiceTest {
 	StubCompanyRepository companyRepository = new StubCompanyRepository();
 	FakeOrderRepository orderRepository = new FakeOrderRepository();
 	OrderMapper orderMapper = new OrderMapper();
-	OrderEventPublisher eventPublisher;
+	CreatedOrderEventPublisher eventPublisher;
 	MatchedEventPublisher matchedEventPublisher;
 	UserServiceClient userServiceClient;
 	TsidGenerator tsidGenerator;
@@ -45,15 +45,14 @@ class OrderServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		eventPublisher = Mockito.mock(OrderEventPublisher.class);
+		eventPublisher = Mockito.mock(CreatedOrderEventPublisher.class);
 		matchedEventPublisher = Mockito.mock(MatchedEventPublisher.class);
 		userServiceClient = Mockito.mock(UserServiceClient.class);
 		tsidGenerator = Mockito.mock(TsidGenerator.class);
-		SimpMessagingTemplate messagingTemplate = Mockito.mock(SimpMessagingTemplate.class);
 		closingPriceService = Mockito.mock(ClosingPriceService.class);
 		orderService = new OrderService(
 				orderRepository, companyRepository, eventPublisher, matchedEventPublisher,
-				userServiceClient, orderMapper, tsidGenerator, closingPriceService, messagingTemplate);
+				userServiceClient, orderMapper, tsidGenerator);
 	}
 
 	@Nested
@@ -68,7 +67,7 @@ class OrderServiceTest {
 		@Test
 		@DisplayName("TC20.2.1 주문 생성 테스트")
 		void testPlaceOrder() {
-			BeforeTradeOrderDto params = createBeforeTradeOrderDto("LIMIT_BUY", new BigDecimal(1), new BigDecimal(1000),
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), new BigDecimal(1000),
 					1L);
 			when(userServiceClient.validateOrder(any()))
 					.thenReturn(new OrderValidationResponse(1L, true));
@@ -79,7 +78,7 @@ class OrderServiceTest {
 		@DisplayName("주문 생성 성공 테스트")
 		void placeOrderSuccess() {
 			// given
-			BeforeTradeOrderDto params = createBeforeTradeOrderDto("LIMIT_BUY", new BigDecimal(1), new BigDecimal(1000),
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), new BigDecimal(1000),
 					1L);
 			when(userServiceClient.validateOrder(any()))
 					.thenReturn(new OrderValidationResponse(1L, true));
@@ -87,16 +86,15 @@ class OrderServiceTest {
 			OrderResponse expected = new OrderResponse(
 					1L,
 					params.companyCode(),
-					Type.valueOf(params.type()),
+					params.type(),
 					params.totalQuantity(),
 					params.price()
 			);
-			ApiResponse<OrderResponse> response = orderService.placeOrder(params);
-			assertThat(response.getMessage()).isEqualTo("주문 접수 성공");
-			assertThat(response.getData().companyCode()).isEqualTo(expected.companyCode());
-			assertThat(response.getData().type()).isEqualTo(expected.type());
-			assertThat(response.getData().totalQuantity()).isEqualTo(expected.totalQuantity());
-			assertThat(response.getData().price()).isEqualTo(expected.price());
+			OrderResponse response = orderService.placeOrder(params);
+			assertThat(response.companyCode()).isEqualTo(expected.companyCode());
+			assertThat(response.type()).isEqualTo(expected.type());
+			assertThat(response.totalQuantity()).isEqualTo(expected.totalQuantity());
+			assertThat(response.price()).isEqualTo(expected.price());
 		}
 	}
 
@@ -115,7 +113,7 @@ class OrderServiceTest {
 		void placeOrderWhenPriceWithinUpperLimit() {
 			// given
 			BigDecimal price = new BigDecimal(1300);
-			BeforeTradeOrderDto params = createBeforeTradeOrderDto("LIMIT_BUY", new BigDecimal(1), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), price, 1L);
 			when(userServiceClient.validateOrder(any()))
 					.thenReturn(new OrderValidationResponse(1L, true));
 
@@ -128,7 +126,7 @@ class OrderServiceTest {
 		void throwExceptionWhenPriceExceedsUpperLimit() {
 			// given
 			BigDecimal price = new BigDecimal(1301);
-			BeforeTradeOrderDto params = createBeforeTradeOrderDto("LIMIT_SELL", new BigDecimal(10), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_SELL, new BigDecimal(10), price, 1L);
 
 			// when, then
 			assertThatThrownBy(() -> orderService.placeOrder(params)).isInstanceOf(PriceOutOfRangeException.class);
@@ -139,7 +137,7 @@ class OrderServiceTest {
 		void placeOrderWhenPriceWithinLowerLimit() {
 			// given
 			BigDecimal price = new BigDecimal(700);
-			BeforeTradeOrderDto params = createBeforeTradeOrderDto("LIMIT_BUY", new BigDecimal(10), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, 1L);
 			when(userServiceClient.validateOrder(any()))
 					.thenReturn(new OrderValidationResponse(1L, true));
 
@@ -152,7 +150,7 @@ class OrderServiceTest {
 		void throwExceptionWhenPriceIsBelowLowerLimit() {
 			// given
 			BigDecimal price = new BigDecimal(699);
-			BeforeTradeOrderDto params = createBeforeTradeOrderDto("LIMIT_BUY", new BigDecimal(10), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, 1L);
 
 			// when, then
 			assertThatThrownBy(() -> orderService.placeOrder(params))
@@ -164,7 +162,7 @@ class OrderServiceTest {
 		void throwExceptionWhenInvalidPrice() {
 			// given
 			BigDecimal price = new BigDecimal(-1);
-			BeforeTradeOrderDto params = createBeforeTradeOrderDto("LIMIT_BUY", new BigDecimal(10), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, 1L);
 
 			// when, then
 			assertThatThrownBy(() -> orderService.placeOrder(params)).isInstanceOf(OrderPriceQuotationException.class);
@@ -175,7 +173,7 @@ class OrderServiceTest {
 		void throwExceptionWhenInvalidUnitPrice() {
 			// given
 			BigDecimal price = new BigDecimal("0.5");
-			BeforeTradeOrderDto params = createBeforeTradeOrderDto("LIMIT_BUY", new BigDecimal(10), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, 1L);
 
 			// when, then
 			assertThatThrownBy(() -> orderService.placeOrder(params)).isInstanceOf(OrderPriceQuotationException.class);
@@ -191,7 +189,7 @@ class OrderServiceTest {
 		void communicationWithUserService() {
 			// given
 			BigDecimal price = new BigDecimal(1300);
-			BeforeTradeOrderDto params = createBeforeTradeOrderDto("LIMIT_BUY", new BigDecimal(1), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), price, 1L);
 
 			// closingPriceService 모의 설정 추가
 			when(closingPriceService.getClosingPrice(anyString())).thenReturn(new BigDecimal(1000));
@@ -205,13 +203,13 @@ class OrderServiceTest {
 		}
 	}
 
-	private BeforeTradeOrderDto createBeforeTradeOrderDto(
-			String type,
+	private OrderCreateCommand createOrderCreateCommand(
+			Type type,
 			BigDecimal totalQuantity,
 			BigDecimal price,
 			Long memberId
 	) {
-		return new BeforeTradeOrderDto(
+		return new OrderCreateCommand(
 				"005930",
 				type,
 				totalQuantity,

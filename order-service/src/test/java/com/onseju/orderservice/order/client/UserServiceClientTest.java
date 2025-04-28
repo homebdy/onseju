@@ -3,25 +3,30 @@ package com.onseju.orderservice.order.client;
 import com.onseju.orderservice.grpc.GrpcValidateRequest;
 import com.onseju.orderservice.grpc.GrpcValidateResponse;
 import com.onseju.orderservice.grpc.OrderValidationServiceGrpc;
-import com.onseju.orderservice.order.dto.BeforeTradeOrderDto;
+import com.onseju.orderservice.order.domain.Type;
 import com.onseju.orderservice.order.dto.OrderValidationResponse;
+import com.onseju.orderservice.order.service.dto.OrderCreateCommand;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcCleanupRule;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 class UserServiceClientTest {
 
@@ -64,13 +69,13 @@ class UserServiceClientTest {
 	@Test
 	void validateOrder_Success() {
 		// Given
-		BeforeTradeOrderDto dto = BeforeTradeOrderDto.builder()
-			.companyCode("AAPL")
-			.type("LIMIT_BUY")
-			.totalQuantity(new BigDecimal("10"))
-			.price(new BigDecimal("150.5"))
-			.memberId(123L)
-			.build();
+		OrderCreateCommand dto = new OrderCreateCommand(
+				"005930",
+				Type.LIMIT_BUY,
+				new BigDecimal(10),
+				new BigDecimal(1000),
+				1L
+		);
 
 		// Mock 서비스 구현 설정
 		doAnswer(invocation -> {
@@ -102,23 +107,23 @@ class UserServiceClientTest {
 		verify(serviceImpl).validateOrder(requestCaptor.capture(), any(StreamObserver.class));
 
 		GrpcValidateRequest capturedRequest = requestCaptor.getValue();
-		assertEquals("AAPL", capturedRequest.getCompanyCode());
-		assertEquals("LIMIT_BUY", capturedRequest.getType());
-		assertEquals("10", capturedRequest.getTotalQuantity());
-		assertEquals("150.5", capturedRequest.getPrice());
-		assertEquals(123L, capturedRequest.getMemberId());
+		assertEquals(dto.companyCode(), capturedRequest.getCompanyCode());
+		assertEquals(dto.type().name(), capturedRequest.getType());
+		assertEquals(dto.totalQuantity().toString(), capturedRequest.getTotalQuantity());
+		assertEquals(dto.price().toString(), capturedRequest.getPrice());
+		assertEquals(dto.memberId(), capturedRequest.getMemberId());
 	}
 
 	@Test
 	void validateOrder_Failure() {
 		// Given
-		BeforeTradeOrderDto dto = BeforeTradeOrderDto.builder()
-			.companyCode("AAPL")
-			.type("LIMIT_BUY")
-			.totalQuantity(new BigDecimal("10"))
-			.price(new BigDecimal("150.5"))
-			.memberId(123L)
-			.build();
+		OrderCreateCommand dto = new OrderCreateCommand(
+				"005930",
+				Type.LIMIT_BUY,
+				new BigDecimal(10),
+				new BigDecimal(1000),
+				1L
+		);
 
 		// Mock 서비스 구현 설정 - 실패 응답
 		doAnswer(invocation -> {
@@ -148,13 +153,13 @@ class UserServiceClientTest {
 	@Test
 	void validateOrder_Exception() {
 		// Given
-		BeforeTradeOrderDto dto = BeforeTradeOrderDto.builder()
-			.companyCode("AAPL")
-			.type("LIMIT_BUY")
-			.totalQuantity(new BigDecimal("10"))
-			.price(new BigDecimal("150.5"))
-			.memberId(123L)
-			.build();
+		OrderCreateCommand dto = new OrderCreateCommand(
+				"005930",
+				Type.LIMIT_BUY,
+				new BigDecimal(10),
+				new BigDecimal(1000),
+				1L
+		);
 
 		// Mock 서비스 구현 설정 - 예외 발생
 		doAnswer(invocation -> {

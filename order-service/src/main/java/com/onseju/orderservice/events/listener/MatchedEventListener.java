@@ -1,18 +1,17 @@
 package com.onseju.orderservice.events.listener;
 
 import com.onseju.orderservice.chart.service.ChartService;
-import com.onseju.orderservice.events.MatchedEvent;
-import com.onseju.orderservice.events.OrderBookSyncedEvent;
+import com.onseju.orderservice.events.dto.MatchedEvent;
+import com.onseju.orderservice.events.dto.OrderBookSyncedEvent;
+import com.onseju.orderservice.events.mapper.EventMapper;
 import com.onseju.orderservice.global.config.RabbitMQConfig;
-import com.onseju.orderservice.order.dto.AfterTradeOrderDto;
-import com.onseju.orderservice.order.mapper.OrderMapper;
 import com.onseju.orderservice.order.service.OrderService;
 import com.onseju.orderservice.tradehistory.domain.TradeHistory;
-import com.onseju.orderservice.tradehistory.mapper.TradeHistoryMapper;
 import com.onseju.orderservice.tradehistory.service.TradeHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -25,14 +24,11 @@ import org.springframework.stereotype.Component;
 public class MatchedEventListener {
 
 	private final TradeHistoryService tradeHistoryService;
-	private final TradeHistoryMapper tradeHistoryMapper;
-
 	private final OrderService orderService;
-	private final OrderMapper orderMapper;
-
 	private final ChartService chartService;
-
-//	private final TradeHistoryNotificationService tradeHistoryNotificationService;
+	//	private final TradeHistoryNotificationService tradeHistoryNotificationService;
+	private final EventMapper mapper;
+	private final SimpMessagingTemplate messagingTemplate;
 
 	/**
 	 * 주문 매칭 이벤트 처리
@@ -41,23 +37,14 @@ public class MatchedEventListener {
 	@RabbitListener(queues = RabbitMQConfig.MATCHING_RESULT_QUEUE)
 	public void handleOrderMatched(final MatchedEvent event) {
 		// 체결 내역 저장
-		final TradeHistory tradeHistory = tradeHistoryMapper.toEntity(event);
-		tradeHistoryService.saveTradeHistory(tradeHistory);
+		TradeHistory tradeHistory = tradeHistoryService.save(event);
 
 		// 메모리에 거래 내역 저장 및 차트 업데이트
 		chartService.processNewTrade(tradeHistory);
 
 		// 주문 내역에서 남은 양 차감
-		final AfterTradeOrderDto buyOrder =
-				orderMapper.toAfterTradeOrderDto(event.buyOrderId(), event.quantity());
-		final AfterTradeOrderDto sellOrder =
-				orderMapper.toAfterTradeOrderDto(event.sellOrderId(), event.quantity());
-
-		orderService.updateRemainingQuantity(buyOrder);
-		orderService.updateRemainingQuantity(sellOrder);
-
-		// 매칭 후, 사용자 업데이트 이벤트 발행
-		orderService.publishUserUpdateEvent(event);
+		orderService.updateRemainingQuantity(mapper.toMatchedOrderUpdateDto(event.buyOrderId(), event));
+		orderService.updateRemainingQuantity(mapper.toMatchedOrderUpdateDto(event.sellOrderId(), event));
 
 		// 사용자에게 체결 완료 알람 발송
 //		tradeHistoryNotificationService.sendNotification(event);
@@ -68,6 +55,6 @@ public class MatchedEventListener {
 	 */
 	@RabbitListener(queues = RabbitMQConfig.ORDER_BOOK_SYNCED_QUEUE)
 	public void handleOrderBookSynced(final OrderBookSyncedEvent event) {
-		orderService.broadcastOrderBookUpdate(event);
+		messagingTemplate.convertAndSend("/topic/orderbook/" + event.companyCode(), event);
 	}
 }

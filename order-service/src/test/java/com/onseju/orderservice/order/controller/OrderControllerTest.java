@@ -6,8 +6,8 @@ import com.onseju.orderservice.global.security.UserDetailsServiceImpl;
 import com.onseju.orderservice.mock.WithMockUserDetails;
 import com.onseju.orderservice.order.controller.request.OrderRequest;
 import com.onseju.orderservice.order.domain.Type;
-import com.onseju.orderservice.order.dto.BeforeTradeOrderDto;
 import com.onseju.orderservice.order.service.OrderService;
+import com.onseju.orderservice.order.service.dto.OrderCreateCommand;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +56,6 @@ class OrderControllerTest {
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(request)))
 				.andExpect(status().isOk());
-		verify(orderService).placeOrder(any(BeforeTradeOrderDto.class));
+		verify(orderService).placeOrder(any(OrderCreateCommand.class));
 	}
 }

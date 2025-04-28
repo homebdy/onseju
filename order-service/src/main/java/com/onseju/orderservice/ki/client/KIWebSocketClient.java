@@ -5,8 +5,8 @@ import com.onseju.orderservice.global.utils.TsidGenerator;
 import com.onseju.orderservice.ki.dto.KIStockDto;
 import com.onseju.orderservice.ki.dto.KIStockHogaDto;
 import com.onseju.orderservice.order.domain.Type;
-import com.onseju.orderservice.order.dto.BeforeTradeOrderDto;
 import com.onseju.orderservice.order.service.OrderService;
+import com.onseju.orderservice.order.service.dto.OrderCreateCommand;
 import com.onseju.orderservice.tradehistory.domain.TradeHistory;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -367,15 +367,15 @@ public class KIWebSocketClient {
 				final BigDecimal price = stockData.askPrices().get(i);
 				final BigDecimal quantity = stockData.askRemains().get(i);
 
-				final BeforeTradeOrderDto dto = BeforeTradeOrderDto.builder()
-						.companyCode(stockData.stockCode())
-						.type(Type.LIMIT_SELL.name())
-						.totalQuantity(quantity)
-						.price(price)
-						.memberId(1L)
-						.build();
-
-				orderService.placeOrder(dto);
+				orderService.placeOrder(
+						new OrderCreateCommand(
+								stockData.stockCode(),
+								Type.LIMIT_SELL,
+								quantity,
+								price,
+								1L
+						)
+				);
 			}
 
 			// 매수 호가
@@ -383,15 +383,15 @@ public class KIWebSocketClient {
 				final BigDecimal price = stockData.bidPrices().get(i);
 				final BigDecimal quantity = stockData.bidRemains().get(i);
 
-				final BeforeTradeOrderDto dto = BeforeTradeOrderDto.builder()
-						.companyCode(stockData.stockCode())
-						.type(Type.LIMIT_BUY.name())
-						.totalQuantity(quantity)
-						.price(price)
-						.memberId(1L)
-						.build();
-
-				orderService.placeOrder(dto);
+				orderService.placeOrder(
+						new OrderCreateCommand(
+								stockData.stockCode(),
+								Type.LIMIT_BUY,
+								quantity,
+								price,
+								1L
+						)
+				);
 			}
 		} catch (Exception e) {
 			log.error("Error handling hoga data message: {}", e.getMessage());
