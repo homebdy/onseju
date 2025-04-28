@@ -22,7 +22,7 @@ public class CompanyCode {
         return Objects.hashCode(value);
     }
 
-    public String getCompanyCode() {
+    public String getValue() {
         return value;
     }
 }

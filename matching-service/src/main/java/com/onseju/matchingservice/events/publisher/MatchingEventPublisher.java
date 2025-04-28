@@ -28,7 +28,7 @@ public class MatchingEventPublisher extends AbstractEventPublisher<MatchedEvent>
     @Override
     protected void doPublish(MatchedEvent event) {
         try {
-            publishAfterMatchingEventToOrderSevice(event);
+            publishAfterMatchingEventToOrderService(event);
             log.info("체결 완료 이벤트 발행 완료. orderId: {}", event.id());
         } catch (Exception ex) {
             log.error("체결 완료 이벤트 발행 중 오류 발생. orderId: {}", event.id(), ex);
@@ -36,7 +36,7 @@ public class MatchingEventPublisher extends AbstractEventPublisher<MatchedEvent>
         }
     }
 
-    private void publishAfterMatchingEventToOrderSevice(MatchedEvent event) {
+    private void publishAfterMatchingEventToOrderService(MatchedEvent event) {
         sendMessage(
                 RabbitMQConfig.ONSEJU_MATCHING_EXCHANGE,
                 RabbitMQConfig.MATCHING_RESULT_KEY,

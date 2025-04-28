@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
-public class EventMapper {
+public class MatchingMapper {
 
     public TradeOrder toTradeOrder(final OrderCreatedEvent event) {
         return TradeOrder.builder()

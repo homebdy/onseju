@@ -6,14 +6,20 @@ import com.onseju.matchingservice.engine.orderbook.AbstractOrderBook;
 import com.onseju.matchingservice.engine.orderbook.BuyOrderBook;
 import com.onseju.matchingservice.engine.orderbook.SellOrderBook;
 import com.onseju.matchingservice.events.MatchedEvent;
-import com.onseju.matchingservice.events.publisher.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * MatchingEngine
+ * 1. CompanyCode를 기준으로 주문장(OrderBook) 관리
+ * 2. 주문 타입(SELL/BUY) 확인
+ * 3. 적절한 OrderBook 에서 매칭 시도
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -24,7 +30,9 @@ public class MatchingEngine {
 
     // 각 회사별 매수 주문을 저장하는 OrderBook
     private final ConcurrentHashMap<CompanyCode, AbstractOrderBook> buyOrderBook = new ConcurrentHashMap<>();
-    private final EventPublisher<MatchedEvent> matchedEventPublisher;
+
+    // 매칭 동시성 문제를 해결하기 위한 Lock
+    ReentrantLock lock = new ReentrantLock(true);
 
     /**
      * 주문을 처리한다.
@@ -33,10 +41,13 @@ public class MatchingEngine {
      * 2. 주문의 타입(시장가/지정가 등)을 조정
      * 3. 주문 매칭 로직 수행
      */
-    public void processOrder(final TradeOrder order) {
+    public Collection<MatchedEvent> processOrder(final TradeOrder order) {
+        lock.lock();
         initializeOrderBooksIfNeeded(order.getCompanyCode());
         adjustOrderType(order);
-        processOrderMatching(order);
+        Collection<MatchedEvent> results = processOrderMatching(order);
+        lock.unlock();
+        return results;
     }
 
     // 회사별 매도/매수 주문장이 존재하지 않으면 새로 생성
@@ -71,12 +82,13 @@ public class MatchingEngine {
     }
 
     // 주문을 실제로 매칭 처리하고, 남은 주문은 주문장에 추가
-    private void processOrderMatching(final TradeOrder order) {
+    private Collection<MatchedEvent> processOrderMatching(final TradeOrder order) {
         AbstractOrderBook matchingOrderBook = findMatchingOrderBook(order);
         Collection<MatchedEvent> matchedEvents = matchingOrderBook.matchOrder(order);
 
         addRemainingOrder(order);
-        processMatchedEvents(matchedEvents);
+
+        return matchedEvents;
     }
 
     // 매칭 대상이 되는 반대편 주문장을 반환
@@ -96,15 +108,5 @@ public class MatchingEngine {
         }
         AbstractOrderBook orderBook = buyOrderBook.get(order.getCompanyCode());
         orderBook.add(order);
-    }
-
-    // 모든 매칭 이벤트를 순회하며 개별 이벤트 처리
-    private void processMatchedEvents(final Collection<MatchedEvent> events) {
-        events.forEach(event -> {
-            log.info("체결 완료: sell order - {}, buy order - {}",
-                    event.sellOrderId(),
-                    event.buyOrderId());
-            matchedEventPublisher.publishEvent(event);
-        });
     }
 }

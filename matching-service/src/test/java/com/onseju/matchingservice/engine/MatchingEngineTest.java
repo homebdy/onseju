@@ -4,15 +4,9 @@ import com.onseju.matchingservice.domain.CompanyCode;
 import com.onseju.matchingservice.domain.OrderStatus;
 import com.onseju.matchingservice.domain.TradeOrder;
 import com.onseju.matchingservice.domain.Type;
-import com.onseju.matchingservice.events.MatchedEvent;
-import com.onseju.matchingservice.events.publisher.EventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -21,18 +15,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-@ExtendWith(MockitoExtension.class)
 class MatchingEngineTest {
 
-    @InjectMocks
     private MatchingEngine matchingEngine;
-
-    @Mock
-    private EventPublisher<MatchedEvent> matchedEventPublisher;
 
     @BeforeEach
     void setUp() {
-        matchingEngine = new MatchingEngine(matchedEventPublisher);
+        matchingEngine = new MatchingEngine();
     }
 
     @Test

@@ -67,7 +67,7 @@ public abstract class AbstractOrderBook {
         return storage.match(order);
     }
 
-    // 남은 수량의 주문을 호가창에 추가
+    // 남은 수량의 주문을 주문장에 추가
     public void add(final TradeOrder order) {
         if (order.hasRemainingQuantity() && isCorrectOrderType(order)) {
             Price price = new Price(order.getPrice());

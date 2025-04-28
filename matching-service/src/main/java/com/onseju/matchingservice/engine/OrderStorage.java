@@ -4,12 +4,10 @@ import com.onseju.matchingservice.domain.TradeOrder;
 import com.onseju.matchingservice.events.MatchedEvent;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 public class OrderStorage {
@@ -25,15 +23,15 @@ public class OrderStorage {
         Iterator<TradeOrder> iterator = elements.iterator();
         List<MatchedEvent> results = new ArrayList<>();
         while (iterator.hasNext() && incomingOrder.hasRemainingQuantity()) {
-            final TradeOrder foundedOrder = iterator.next();
-            if (foundedOrder.isSameAccount(incomingOrder.getAccountId())) {
+            final TradeOrder foundOrder = iterator.next();
+            if (foundOrder.isSameAccount(incomingOrder.getAccountId())) {
                 continue;
             }
 
-            BigDecimal matchedQuantity = incomingOrder.calculateMatchQuantity(foundedOrder);
-            updateRemainingQuantity(incomingOrder, foundedOrder, matchedQuantity);
-            results.add(createResponse(incomingOrder, foundedOrder, matchedQuantity));
-            if (!foundedOrder.hasRemainingQuantity()) {
+            BigDecimal matchedQuantity = incomingOrder.calculateMatchQuantity(foundOrder);
+            updateRemainingQuantity(incomingOrder, foundOrder, matchedQuantity);
+            results.add(MatchedEvent.of(incomingOrder, foundOrder, matchedQuantity));
+            if (!foundOrder.hasRemainingQuantity()) {
                 iterator.remove();
             }
         }
@@ -48,47 +46,6 @@ public class OrderStorage {
     ) {
         incomingOrder.decreaseRemainingQuantity(matchedQuantity);
         foundedOrder.decreaseRemainingQuantity(matchedQuantity);
-    }
-
-    // 매칭 완료 후 응답 생성
-    private MatchedEvent createResponse(
-            final TradeOrder incomingOrder,
-            final TradeOrder foundOrder,
-            final BigDecimal matchedQuantity
-    ) {
-        final BigDecimal price = getMatchingPrice(incomingOrder, foundOrder);
-        if (incomingOrder.isSellType()) {
-            return new MatchedEvent(
-                    UUID.randomUUID(),
-                    incomingOrder.getCompanyCode().getCompanyCode(),
-                    foundOrder.getId(),
-                    foundOrder.getAccountId(),
-                    incomingOrder.getId(),
-                    incomingOrder.getAccountId(),
-                    matchedQuantity,
-                    price,
-                    Instant.now().toEpochMilli()
-            );
-        }
-        return new MatchedEvent(
-                UUID.randomUUID(),
-                incomingOrder.getCompanyCode().getCompanyCode(),
-                incomingOrder.getId(),
-                incomingOrder.getAccountId(),
-                foundOrder.getId(),
-                foundOrder.getAccountId(),
-                matchedQuantity,
-                price,
-                Instant.now().toEpochMilli()
-        );
-    }
-
-    // 매칭 가격을 계산한다.
-    private BigDecimal getMatchingPrice(final TradeOrder incomingOrder, final TradeOrder foundOrder) {
-        if (incomingOrder.isMarketOrder()) {
-            return foundOrder.getPrice();
-        }
-        return incomingOrder.getPrice();
     }
 
     public boolean isEmpty() {

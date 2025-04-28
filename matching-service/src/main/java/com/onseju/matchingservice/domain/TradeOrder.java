@@ -85,6 +85,17 @@ public class TradeOrder {
         price = BigDecimal.ZERO;
     }
 
+    public BigDecimal calculatePrice(TradeOrder other) {
+        if (this.isMarketOrder()) {
+            return other.getPrice();
+        }
+        return this.price;
+    }
+
+    public String getCompanyCodeValue() {
+        return companyCode.getValue();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {

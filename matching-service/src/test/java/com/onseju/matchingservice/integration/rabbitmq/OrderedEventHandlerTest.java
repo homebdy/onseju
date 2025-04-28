@@ -1,11 +1,10 @@
-package com.onseju.matchingservice.service;
+package com.onseju.matchingservice.integration.rabbitmq;
 
 import com.onseju.matchingservice.domain.OrderStatus;
 import com.onseju.matchingservice.domain.Type;
-import com.onseju.matchingservice.engine.MatchingEngine;
 import com.onseju.matchingservice.events.OrderCreatedEvent;
 import com.onseju.matchingservice.events.listener.MatchingEventListener;
-import com.onseju.matchingservice.mapper.EventMapper;
+import com.onseju.matchingservice.service.MatchingService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,10 +24,7 @@ class OrderedEventHandlerTest {
     MatchingEventListener matchingEventListener;
 
     @Autowired
-    EventMapper eventMapper;
-
-    @Autowired
-    MatchingEngine matchingEngine;
+    MatchingService matchingService;
 
     @Test
     @DisplayName("이벤트를 전달받아 비동기로 처리한다.")
@@ -53,7 +49,7 @@ class OrderedEventHandlerTest {
                 .join();
 
         // then
-        Assertions.assertThatCode(() -> matchingEngine.processOrder(eventMapper.toTradeOrder(orderedEvent)))
+        Assertions.assertThatCode(() -> matchingService.matchOrder(orderedEvent))
                 .doesNotThrowAnyException();
     }
 }
