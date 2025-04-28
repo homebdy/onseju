@@ -373,7 +373,7 @@ public class KIWebSocketClient {
 								Type.LIMIT_SELL,
 								quantity,
 								price,
-								1L
+								"username"
 						)
 				);
 			}
@@ -389,7 +389,7 @@ public class KIWebSocketClient {
 								Type.LIMIT_BUY,
 								quantity,
 								price,
-								1L
+								"username"
 						)
 				);
 			}

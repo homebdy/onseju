@@ -9,6 +9,6 @@ public record OrderCreateCommand(
         Type type,
         BigDecimal totalQuantity,
         BigDecimal price,
-        Long memberId
+        String username
 ) {
 }

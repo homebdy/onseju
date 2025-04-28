@@ -47,27 +47,27 @@ public class TradeHistoryNotificationService extends MemberReaderServiceGrpc.Mem
 
     private void sendNotificationToSellOrder(final MatchedEvent event) throws IOException {
         Order sellOrder = orderRepository.getById(event.sellOrderId());
-        Long memberId = getAccountId(sellOrder.getAccountId());
+        Long memberId = getAccountId(sellOrder.getMemberId());
         Optional<SseEmitter> sellOrderEmitter = orderNotificationRepository.findByMemberId(memberId);
 
         if (sellOrderEmitter.isPresent()) {
             sellOrderEmitter.get().send(toMatchingNotificationDto(sellOrder, event));
         } else {
             System.err.println("SellOrderEmitter is null for memberId: "
-                    + sellOrder.getAccountId());
+                    + sellOrder.getMemberId());
         }
     }
 
     private void sendNotificationToBuyOrder(final MatchedEvent event) throws IOException {
         Order buyOrder = orderRepository.getById(event.buyOrderId());
-        Long memberId = getAccountId(buyOrder.getAccountId());
+        Long memberId = getAccountId(buyOrder.getMemberId());
         Optional<SseEmitter> buyOrderEmitter = orderNotificationRepository.findByMemberId(memberId);
 
         if (buyOrderEmitter.isPresent()) {
             buyOrderEmitter.get().send(toMatchingNotificationDto(buyOrder, event));
         } else {
             System.err.println("BuyOrderEmitter is null for memberId: "
-                    + buyOrder.getAccountId());
+                    + buyOrder.getMemberId());
         }
     }
 

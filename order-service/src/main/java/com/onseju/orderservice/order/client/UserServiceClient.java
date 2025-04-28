@@ -19,22 +19,21 @@ public class UserServiceClient {
 	public OrderValidationResponse validateOrder(OrderCreateCommand command) {
 
 		try {
-
 			GrpcValidateRequest request = GrpcValidateRequest.newBuilder()
 				.setCompanyCode(command.companyCode())
 				.setType(command.type().name())
 				.setTotalQuantity(command.totalQuantity().toPlainString())
 				.setPrice(command.price().toPlainString())
-				.setMemberId(command.memberId())
+				.setUsername(command.username())
 				.build();
 
 			GrpcValidateResponse response = orderValidationServiceBlockingStub.validateOrder(request);
 
 			// gRPC 응답을 ValidateResponse 객체로 변환
 			OrderValidationResponse validateResponse = OrderValidationResponse.builder()
-				.accountId(response.getAccountId())
-				.result(response.getResult())
-				.build();
+					.memberId(response.getMemberId())
+					.result(response.getResult())
+					.build();
 
 			return validateResponse;
 		} catch (Exception e) {

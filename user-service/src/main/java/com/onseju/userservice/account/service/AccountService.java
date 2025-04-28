@@ -21,7 +21,7 @@ public class AccountService {
 
 	public void updateAccountAfterTrade(final AfterTradeAccountDto dto) {
 		optimizeLoop(() -> {
-			Account account = accountRepository.getById(dto.accountId());
+			Account account = accountRepository.getByMemberId(dto.memberId());
 			account.processOrder(
 					dto.type(),
 					dto.price(),
@@ -32,8 +32,8 @@ public class AccountService {
 		});
 	}
 
-	public Long reserve(final BeforeTradeAccountDto dto) {
-		return optimizeLoop(() -> {
+	public void reserve(final BeforeTradeAccountDto dto) {
+		optimizeLoop(() -> {
 			if (dto.type().isBuy()) {
 				Account account = accountRepository.getByMemberId(dto.memberId());
 				account.validateDepositBalance(dto.price().multiply(dto.totalQuantity()));

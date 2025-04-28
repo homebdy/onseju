@@ -31,14 +31,13 @@ import java.time.LocalDateTime;
 		uniqueConstraints = {
 				@UniqueConstraint(
 						name = "uk_account_company",
-						columnNames = {"account_id", "company_code"}
+						columnNames = {"member_id", "company_code"}
 				)
 		})
 public class Holdings extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "holdings_id")
 	private Long id;
 
 	@Column(nullable = false, updatable = false)
@@ -58,7 +57,7 @@ public class Holdings extends BaseEntity {
 	private BigDecimal totalPurchasePrice;
 
 	@Column(nullable = false)
-	private Long accountId;
+	private Long memberId;
 
 	@Version
 	private Long version;

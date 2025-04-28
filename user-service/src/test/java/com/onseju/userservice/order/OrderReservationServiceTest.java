@@ -10,6 +10,8 @@ import com.onseju.userservice.grpc.GrpcValidateResponse;
 import com.onseju.userservice.holding.mapper.HoldingsMapper;
 import com.onseju.userservice.holding.service.HoldingsService;
 import com.onseju.userservice.holding.service.dto.BeforeTradeHoldingsDto;
+import com.onseju.userservice.member.domain.Member;
+import com.onseju.userservice.member.service.repository.MemberRepository;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,6 +46,9 @@ class OrderReservationServiceTest {
 	@Mock
 	private HoldingsMapper holdingsMapper;
 
+	@Mock
+	private MemberRepository memberRepository;
+
 	@InjectMocks
 	private OrderReservationService orderReservationService;
 
@@ -54,14 +60,15 @@ class OrderReservationServiceTest {
 			.setType("LIMIT_BUY")
 			.setTotalQuantity("10")
 			.setPrice("150.5")
-			.setMemberId(123L)
+			.setUsername("username")
 			.build();
 
+		when(memberRepository.findByUsername(any())).thenReturn(Member.builder().id(1L).username("username").build());
 		BeforeTradeOrderDto dto = new BeforeTradeOrderDto("AAPL", "LIMIT_BUY",
-			new BigDecimal("10"), new BigDecimal("150.5"), 123L,1L);
+			new BigDecimal("10"), new BigDecimal("150.5"), 123L,"username");
 
 		BeforeTradeAccountDto accountDto = BeforeTradeAccountDto.builder()
-			.memberId(123456L)
+			.memberId(1L)
 			.type(Type.BUY)  // 또는 Type.SELL
 			.price(new BigDecimal("150.50"))
 			.totalQuantity(new BigDecimal("10"))
@@ -69,14 +76,13 @@ class OrderReservationServiceTest {
 
 		BeforeTradeHoldingsDto holdingsDto = BeforeTradeHoldingsDto.builder()
 			.type(Type.SELL)
-			.accountId(789012L)
+			.memberId(1L)
 			.companyCode("AAPL")
 			.totalQuantity(new BigDecimal("5"))
 			.build();
 
-		when(accountMapper.toBeforeTradeAccountDto(any(), any())).thenReturn(accountDto);
+		when(accountMapper.toBeforeTradeAccountDto(any(), any(), any())).thenReturn(accountDto);
 		when(holdingsMapper.toBeforeTradeHoldingsDto(any(), any(), any())).thenReturn(holdingsDto);
-		when(accountService.reserve(any())).thenReturn(456L);
 
 		StreamObserver<GrpcValidateResponse> responseObserver = mock(StreamObserver.class);
 
@@ -89,7 +95,7 @@ class OrderReservationServiceTest {
 		verify(responseObserver).onCompleted();
 
 		GrpcValidateResponse response = responseCaptor.getValue();
-		assertEquals(456L, response.getAccountId());
+		assertEquals(1L, response.getMemberId());
 		assertTrue(response.getResult());
 	}
 
@@ -101,11 +107,10 @@ class OrderReservationServiceTest {
 			.setType("LIMIT_BUY")
 			.setTotalQuantity("10")
 			.setPrice("150.5")
-			.setMemberId(123L)
+			.setUsername("username")
 			.build();
-
-
-		when(accountService.reserve(any())).thenThrow(new InsufficientBalanceException());
+		when(memberRepository.findByUsername(any())).thenReturn(Member.builder().id(1L).username("username").build());
+		doThrow(new InsufficientBalanceException()).when(accountService).reserve(any());
 
 		StreamObserver<GrpcValidateResponse> responseObserver = mock(StreamObserver.class);
 

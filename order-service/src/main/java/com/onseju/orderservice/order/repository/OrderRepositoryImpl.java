@@ -35,6 +35,6 @@ public class OrderRepositoryImpl implements OrderRepository {
 
 	@Override
 	public List<Order> findByMemberId(Long memberId) {
-		return orderJpaRepository.findByAccountId(memberId);
+		return orderJpaRepository.findByMemberId(memberId);
 	}
 }

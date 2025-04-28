@@ -34,7 +34,7 @@ public class OrderController {
 								request.type(),
 								request.totalQuantity(),
 								request.price(),
-								user.getMember().getId()
+								user.getUsername()
 						)
 				),
 				HttpStatus.OK.value()

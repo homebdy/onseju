@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AccountServiceTest {
@@ -23,6 +24,7 @@ class AccountServiceTest {
 	AccountService accountService;
 	FakeAccountRepository fakeAccountRepository = new FakeAccountRepository();
 
+	private Long ACCOUNT_ID;
 	private final Member member = Member.builder()
 			.id(100L)
 			.email("test@example.com")
@@ -31,26 +33,28 @@ class AccountServiceTest {
 
 	@BeforeEach
 	void setUp() {
+
 		accountService = new AccountService(fakeAccountRepository);
 		member.createAccount();
 		fakeAccountRepository.save(member.getAccount());
+		ACCOUNT_ID = fakeAccountRepository.getByMemberId(member.getId()).getId();
 	}
 
 	@Nested
 	@DisplayName("체결 이후 잔액 및 예약금 업데이트")
 	class AccountAfterTrade {
+
 		@Test
 		@DisplayName("매수 요청시, account에서 예약금을 저장한다.")
 		void updateAccountAfterBuyTradeSuccess() {
 			// given
-			Long accountId = 1L;
-			AfterTradeAccountDto dto = new AfterTradeAccountDto(1L, Type.BUY, BigDecimal.ONE, BigDecimal.ONE);
+			AfterTradeAccountDto dto = new AfterTradeAccountDto(member.getId(), Type.BUY, BigDecimal.ONE, BigDecimal.ONE);
 
 			// when
 			accountService.updateAccountAfterTrade(dto);
 
 			// then
-			Account account = fakeAccountRepository.getById(accountId);
+			Account account = fakeAccountRepository.getById(ACCOUNT_ID);
 			assertThat(account.getBalance()).isEqualTo(new BigDecimal(100000000).subtract(BigDecimal.ONE));
 			assertThat(account.getReservedBalance().abs()).isEqualTo(BigDecimal.ONE);
 		}
@@ -59,14 +63,13 @@ class AccountServiceTest {
 		@DisplayName("매도 요청시, account에서 금액을 추가한다.")
 		void updateAccountAfterSellTradeSuccess() {
 			// given
-			Long accountId = 1L;
-			AfterTradeAccountDto params = new AfterTradeAccountDto(1L, Type.SELL, BigDecimal.ONE, BigDecimal.ONE);
+			AfterTradeAccountDto params = new AfterTradeAccountDto(member.getId(), Type.SELL, BigDecimal.ONE, BigDecimal.ONE);
 
 			// when
 			accountService.updateAccountAfterTrade(params);
 
 			// then
-			Account account = fakeAccountRepository.getById(accountId);
+			Account account = fakeAccountRepository.getById(ACCOUNT_ID);
 			assertThat(account.getBalance()).isEqualTo(new BigDecimal(100000001));
 		}
 	}
@@ -76,16 +79,13 @@ class AccountServiceTest {
 	class AccountValidationAndReservation {
 
 		@Test
-		@DisplayName("정상적으로 동작할 경우 Account id를 반환한다.")
+		@DisplayName("정상적으로 동작할 경우 예외가 없이 동작한다.")
 		void getAccountId() {
 			// given
 			BeforeTradeAccountDto dto = getOrderValidationRequest(member.getId(), Type.BUY, new BigDecimal(1000));
 
-			// when
-			Long accountId = accountService.reserve(dto);
-
-			// then
-			assertThat(accountId).isNotNull();
+			// when, then
+			assertThatNoException().isThrownBy(() -> accountService.reserve(dto));
 		}
 
 		@Test
@@ -102,7 +102,7 @@ class AccountServiceTest {
 			accountService.reserve(request);
 
 			// then
-			Account afterAccount = fakeAccountRepository.getById(accountId);
+			Account afterAccount = fakeAccountRepository.getById(ACCOUNT_ID);
 			assertThat(accountId).isEqualTo(afterAccount.getId());
 			assertThat(beforeBalance).isEqualTo(afterAccount.getBalance());
 			assertThat(beforeReservedBalance).isEqualTo(afterAccount.getReservedBalance());
@@ -124,7 +124,7 @@ class AccountServiceTest {
 			accountService.reserve(request);
 
 			// then
-			Account afterAccount = fakeAccountRepository.getById(accountId);
+			Account afterAccount = fakeAccountRepository.getById(ACCOUNT_ID);
 			assertThat(beforeBalance).isEqualTo(afterAccount.getBalance());
 			assertThat(beforeReservedBalance.add(request.price().multiply(request.totalQuantity())))
 					.isEqualTo(afterAccount.getReservedBalance());

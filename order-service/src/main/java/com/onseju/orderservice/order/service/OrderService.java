@@ -35,16 +35,16 @@ public class OrderService {
 	private final UserServiceClient userServiceClient;
 	private final OrderMapper orderMapper;
 	private final TsidGenerator tsidGenerator;
-	
+
 	public OrderResponse placeOrder(final OrderCreateCommand command) {
 		// 주문 유효성 검증
 		validateOrder(command.price(), command.companyCode());
 
 		// 계좌 및 보유 주식 검증(REST 요청)
-		Long accountId = getAccountIdFromUserService(command);
+		Long memberId = getMemberIdFromUserService(command);
 
 		// 주문 생성 이벤트 발행
-		final Order order = orderMapper.toEntity(tsidGenerator.nextId(), command, accountId);
+		final Order order = orderMapper.toEntity(tsidGenerator.nextId(), command, memberId);
 		orderEventPublisher.publishEvent(orderMapper.toCreatedOrderEvent(order));
 
 		return orderMapper.toOrderResponse(order);
@@ -57,14 +57,14 @@ public class OrderService {
 	}
 
 	// 외부의 user-service와 rest 통신
-	private Long getAccountIdFromUserService(final OrderCreateCommand command) {
+	private Long getMemberIdFromUserService(final OrderCreateCommand command) {
 		OrderValidationResponse response = userServiceClient.validateOrder(command);
 
 		if (!response.result()) {
 			throw new OrderNotValidateException();
 		}
 
-		return response.accountId();
+		return response.memberId();
 	}
 
 	/**

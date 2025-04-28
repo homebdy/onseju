@@ -15,7 +15,7 @@ import java.util.UUID;
 @Component
 public class OrderMapper {
 
-	public Order toEntity(final Long orderId, final OrderCreateCommand dto, final Long accountId) {
+	public Order toEntity(final Long orderId, final OrderCreateCommand dto, final Long memberId) {
 		return Order.builder()
 				.id(orderId)
 				.companyCode(dto.companyCode())
@@ -24,7 +24,7 @@ public class OrderMapper {
 				.remainingQuantity(dto.totalQuantity())
 				.status(OrderStatus.ACTIVE)
 				.price(dto.price())
-				.accountId(accountId)
+				.memberId(memberId)
 				.timestamp(Instant.now().toEpochMilli())
 				.build();
 	}
@@ -38,7 +38,7 @@ public class OrderMapper {
 				.remainingQuantity(event.totalQuantity())
 				.status(OrderStatus.ACTIVE)
 				.price(event.price())
-				.accountId(event.accountId())
+				.memberId(event.memberId())
 				.timestamp(event.timestamp())
 				.build();
 	}
@@ -54,7 +54,7 @@ public class OrderMapper {
 				.remainingQuantity(order.getRemainingQuantity())
 				.price(order.getPrice())
 				.timestamp(order.getTimestamp())
-				.accountId(order.getAccountId())
+				.memberId(order.getMemberId())
 				.build();
 	}
 
@@ -62,7 +62,7 @@ public class OrderMapper {
 		return new MatchedOrderUpdateEvent(
 				UUID.randomUUID(),
 				order.getCompanyCode(),
-				order.getAccountId(),
+				order.getMemberId(),
 				dto.quantity(),
 				dto.price(),
 				dto.tradeAt()

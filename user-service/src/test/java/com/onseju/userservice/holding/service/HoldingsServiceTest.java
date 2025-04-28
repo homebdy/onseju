@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class HoldingsServiceTest {
 
-	private static final Long ACCOUNT_ID = 1L;
+	private static final Long MEMBER_ID = 1L;
 	private static final String COMPANY_CODE = "005930";
 	private final HoldingsRepository holdingsRepository = new FakeHoldingsRepository();
 	private final HoldingsService holdingsService = new HoldingsService(holdingsRepository);
@@ -33,7 +33,7 @@ class HoldingsServiceTest {
 				.reservedQuantity(new BigDecimal("10"))
 				.averagePrice(new BigDecimal(1000))
 				.totalPurchasePrice(new BigDecimal(100000))
-				.accountId(ACCOUNT_ID)
+				.memberId(MEMBER_ID)
 				.build();
 		holdingsRepository.save(holdings);
 	}
@@ -53,7 +53,7 @@ class HoldingsServiceTest {
 			holdingsService.updateHoldingsAfterTrade(params);
 
 			// then
-			Holdings updatedHoldings = holdingsRepository.getByAccountIdAndCompanyCode(ACCOUNT_ID, COMPANY_CODE);
+			Holdings updatedHoldings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
 			assertThat(updatedHoldings.getReservedQuantity()).isEqualTo(BigDecimal.ZERO);
 			assertThat(updatedHoldings.getQuantity()).isEqualTo(new BigDecimal(90));
 		}
@@ -62,13 +62,13 @@ class HoldingsServiceTest {
 		@DisplayName("보유 내역이 존재하지 않을 경우 새롭게 생성하여 저장한다.")
 		void createHoldingsWhenHoldingsNotExist() {
 			// given
-			AfterTradeHoldingsDto params = new AfterTradeHoldingsDto(Type.BUY, ACCOUNT_ID, "first", new BigDecimal(1000), new BigDecimal(10));
+			AfterTradeHoldingsDto params = new AfterTradeHoldingsDto(Type.BUY, MEMBER_ID, "first", new BigDecimal(1000), new BigDecimal(10));
 
 			// when
 			holdingsService.updateHoldingsAfterTrade(params);
 
 			// then
-			Holdings updatedHoldings = holdingsRepository.getByAccountIdAndCompanyCode(ACCOUNT_ID, "first");
+			Holdings updatedHoldings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, "first");
 			assertThat(updatedHoldings.getCompanyCode()).isEqualTo(params.companyCode());
 			assertThat(updatedHoldings.getReservedQuantity()).isEqualTo(BigDecimal.ZERO);
 			assertThat(updatedHoldings.getQuantity()).isEqualTo(new BigDecimal(10));
@@ -79,7 +79,7 @@ class HoldingsServiceTest {
 		void updateHoldingsForSellOrder() {
 			// given
 			AfterTradeHoldingsDto params = createAfterTradeHoldingsDto(Type.SELL, new BigDecimal(1000), new BigDecimal(10));
-			Holdings holdings = holdingsRepository.getByAccountIdAndCompanyCode(ACCOUNT_ID, COMPANY_CODE);
+			Holdings holdings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
 			BigDecimal beforeReservedQuantity = holdings.getReservedQuantity();
 			BigDecimal beforeQuantity = holdings.getQuantity();
 
@@ -87,7 +87,7 @@ class HoldingsServiceTest {
 			holdingsService.updateHoldingsAfterTrade(params);
 
 			// then
-			Holdings updatedHoldings = holdingsRepository.getByAccountIdAndCompanyCode(ACCOUNT_ID, COMPANY_CODE);
+			Holdings updatedHoldings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
 			assertThat(updatedHoldings.getCompanyCode()).isEqualTo(params.companyCode());
 			assertThat(updatedHoldings.getReservedQuantity()).isEqualTo(beforeReservedQuantity.subtract(params.quantity()));
 			assertThat(updatedHoldings.getQuantity()).isEqualTo(beforeQuantity.subtract(params.quantity()));
@@ -98,7 +98,7 @@ class HoldingsServiceTest {
 		void updateHoldingsForBuyOrder() {
 			// given
 			AfterTradeHoldingsDto params = createAfterTradeHoldingsDto(Type.BUY, new BigDecimal(1000), new BigDecimal(10));
-			Holdings holdings = holdingsRepository.getByAccountIdAndCompanyCode(ACCOUNT_ID, COMPANY_CODE);
+			Holdings holdings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
 			BigDecimal beforeReservedQuantity = holdings.getReservedQuantity();
 			BigDecimal beforeQuantity = holdings.getQuantity();
 
@@ -106,7 +106,7 @@ class HoldingsServiceTest {
 			holdingsService.updateHoldingsAfterTrade(params);
 
 			// then
-			Holdings updatedHoldings = holdingsRepository.getByAccountIdAndCompanyCode(ACCOUNT_ID, COMPANY_CODE);
+			Holdings updatedHoldings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
 			assertThat(updatedHoldings.getCompanyCode()).isEqualTo(params.companyCode());
 			assertThat(updatedHoldings.getReservedQuantity()).isEqualTo(beforeReservedQuantity);
 			assertThat(updatedHoldings.getQuantity()).isEqualTo(beforeQuantity.add(params.quantity()));
@@ -122,7 +122,7 @@ class HoldingsServiceTest {
 		void validateHoldingsForBuyOrder() {
 			// given
 			BeforeTradeHoldingsDto dto = createBeforeTradeHoldingsDto(Type.BUY, BigDecimal.ONE);
-			Holdings holdings = holdingsRepository.getByAccountIdAndCompanyCode(ACCOUNT_ID, COMPANY_CODE);
+			Holdings holdings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
 			BigDecimal beforeReservedQuantity = holdings.getReservedQuantity();
 			BigDecimal beforeQuantity = holdings.getQuantity();
 
@@ -130,7 +130,7 @@ class HoldingsServiceTest {
 			holdingsService.reserve(dto);
 
 			// then
-			Holdings after = holdingsRepository.getByAccountIdAndCompanyCode(ACCOUNT_ID, COMPANY_CODE);
+			Holdings after = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
 			assertThat(after.getReservedQuantity()).isEqualTo(beforeReservedQuantity);
 			assertThat(after.getQuantity()).isEqualTo(beforeQuantity);
 		}
@@ -140,7 +140,7 @@ class HoldingsServiceTest {
 		void validateHoldingsForSellOrder() {
 			// given
 			BeforeTradeHoldingsDto request = createBeforeTradeHoldingsDto(Type.SELL, BigDecimal.ONE);
-			Holdings holdings = holdingsRepository.getByAccountIdAndCompanyCode(ACCOUNT_ID, COMPANY_CODE);
+			Holdings holdings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
 			BigDecimal beforeReservedQuantity = holdings.getReservedQuantity();
 			BigDecimal beforeQuantity = holdings.getQuantity();
 
@@ -148,7 +148,7 @@ class HoldingsServiceTest {
 			holdingsService.reserve(request);
 
 			// then
-			Holdings after = holdingsRepository.getByAccountIdAndCompanyCode(ACCOUNT_ID, COMPANY_CODE);
+			Holdings after = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
 			assertThat(after.getReservedQuantity()).isEqualTo(beforeReservedQuantity.add(request.totalQuantity()));
 			assertThat(after.getQuantity()).isEqualTo(beforeQuantity);
 		}
@@ -159,7 +159,7 @@ class HoldingsServiceTest {
 			// given
 			BeforeTradeHoldingsDto request = new BeforeTradeHoldingsDto(
 					Type.SELL,
-					ACCOUNT_ID,
+					MEMBER_ID,
 					"InvalidCompanyCode",
 					BigDecimal.ONE
 			);
@@ -184,13 +184,13 @@ class HoldingsServiceTest {
 	}
 
 	private AfterTradeHoldingsDto createAfterTradeHoldingsDto(Type type, BigDecimal price, BigDecimal quantity) {
-		return new AfterTradeHoldingsDto(type, ACCOUNT_ID, COMPANY_CODE, price, quantity);
+		return new AfterTradeHoldingsDto(type, MEMBER_ID, COMPANY_CODE, price, quantity);
 	}
 
 	private BeforeTradeHoldingsDto createBeforeTradeHoldingsDto(Type type, BigDecimal quantity) {
 		return new BeforeTradeHoldingsDto(
 				type,
-				ACCOUNT_ID,
+				MEMBER_ID,
 				COMPANY_CODE,
 				quantity
 		);
@@ -203,7 +203,7 @@ class HoldingsServiceTest {
 				.reservedQuantity(new BigDecimal(10))
 				.averagePrice(new BigDecimal(1000))
 				.totalPurchasePrice(new BigDecimal(10000))
-				.accountId(ACCOUNT_ID)
+				.memberId(MEMBER_ID)
 				.build();
 	}
 }

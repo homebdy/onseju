@@ -14,16 +14,16 @@ public class FakeHoldingsRepository implements HoldingsRepository {
 	private final ConcurrentSkipListSet<Holdings> elements = new ConcurrentSkipListSet<>(Comparator.comparing(Holdings::getId));
 
 	@Override
-	public Holdings getOrDefaultByAccountIdAndCompanyCode(Long accountId, String companyCode) {
+	public Holdings getOrDefaultByMemberIdAndCompanyCode(Long memberId, String companyCode) {
 		return elements.stream()
 				.filter(value ->
 						value.getCompanyCode().equals(companyCode) &&
-								value.getAccountId().equals(accountId)
+								value.getMemberId().equals(memberId)
 				)
 				.findAny()
 				.orElse(
 						Holdings.builder()
-								.accountId(accountId)
+								.memberId(memberId)
 								.companyCode(companyCode)
 								.quantity(BigDecimal.ZERO)
 								.reservedQuantity(BigDecimal.ZERO)
@@ -34,11 +34,11 @@ public class FakeHoldingsRepository implements HoldingsRepository {
 	}
 
 	@Override
-	public Holdings getByAccountIdAndCompanyCode(Long accountId, String companyCode) {
+	public Holdings getByMemberIdAndCompanyCode(Long memberId, String companyCode) {
 		return elements.stream()
 				.filter(value ->
 						value.getCompanyCode().equals(companyCode) &&
-								value.getAccountId().equals(accountId))
+								value.getMemberId().equals(memberId))
 				.findAny()
 				.orElseThrow(HoldingsNotFoundException::new);
 	}
@@ -59,7 +59,7 @@ public class FakeHoldingsRepository implements HoldingsRepository {
 				.reservedQuantity(holdings.getReservedQuantity())
 				.averagePrice(holdings.getAveragePrice())
 				.totalPurchasePrice(holdings.getTotalPurchasePrice())
-				.accountId(holdings.getAccountId())
+				.memberId(holdings.getMemberId())
 				.createdDateTime(LocalDateTime.now())
 				.updatedDateTime(LocalDateTime.now())
 				.build();

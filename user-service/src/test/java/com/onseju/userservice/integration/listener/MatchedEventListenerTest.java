@@ -5,7 +5,6 @@ import com.onseju.userservice.account.mapper.AccountMapper;
 import com.onseju.userservice.account.service.AccountService;
 import com.onseju.userservice.account.service.repository.AccountRepository;
 import com.onseju.userservice.events.MatchedEvent;
-import com.onseju.userservice.events.UpdateEvent;
 import com.onseju.userservice.events.listener.UserEventListener;
 import com.onseju.userservice.holding.mapper.HoldingsMapper;
 import com.onseju.userservice.holding.service.HoldingsService;
@@ -83,7 +82,6 @@ class MatchedEventListenerTest {
 		// given
 		MatchedEvent matchedEvent = new MatchedEvent(
 				UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
-
 				"005930",
 				1L,
 				1L,

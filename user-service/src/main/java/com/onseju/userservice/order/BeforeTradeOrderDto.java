@@ -1,9 +1,9 @@
 package com.onseju.userservice.order;
 
 
-import java.math.BigDecimal;
-
 import lombok.Builder;
+
+import java.math.BigDecimal;
 
 @Builder
 public record BeforeTradeOrderDto(
@@ -12,7 +12,7 @@ public record BeforeTradeOrderDto(
 		BigDecimal totalQuantity,
 		BigDecimal price,
 		Long timestamp,
-		Long memberId
+		String username
 ) {
 
 }

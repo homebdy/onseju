@@ -11,7 +11,7 @@ import com.onseju.userservice.holding.exception.HoldingsNotFoundException;
 import com.onseju.userservice.holding.exception.InsufficientHoldingsException;
 import com.onseju.userservice.holding.mapper.HoldingsMapper;
 import com.onseju.userservice.holding.service.HoldingsService;
-
+import com.onseju.userservice.member.service.repository.MemberRepository;
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import net.devh.boot.grpc.server.service.GrpcService;
@@ -26,12 +26,13 @@ import static com.onseju.userservice.account.domain.Type.SELL;
 @AllArgsConstructor
 public class OrderReservationService extends OrderValidationServiceGrpc.OrderValidationServiceImplBase {
 
-
 	private final AccountService accountService;
 	private final AccountMapper accountMapper;
 
 	private final HoldingsService holdingsService;
 	private final HoldingsMapper holdingsMapper;
+
+	private final MemberRepository memberRepository;
 
 	@Override
 	public void validateOrder(GrpcValidateRequest request, StreamObserver<GrpcValidateResponse> responseObserver) {
@@ -41,12 +42,13 @@ public class OrderReservationService extends OrderValidationServiceGrpc.OrderVal
 			Type type = convertToType(request.getType());
 
 			// 2. 검증
-			final Long accountId = accountService.reserve(accountMapper.toBeforeTradeAccountDto(dto, type));
-			holdingsService.reserve(holdingsMapper.toBeforeTradeHoldingsDto(dto, type, accountId));
+			Long memberId = memberRepository.findByUsername(dto.username()).getId();
+			accountService.reserve(accountMapper.toBeforeTradeAccountDto(dto, type, memberId));
+			holdingsService.reserve(holdingsMapper.toBeforeTradeHoldingsDto(dto, type, memberId));
 
 			// 3. 검증 성공 응답 생성
 			GrpcValidateResponse response = GrpcValidateResponse.newBuilder()
-				.setAccountId(accountId)
+				.setMemberId(memberId)
 				.setResult(true)
 				.setMessage("검증 성공")
 				.build();
@@ -71,15 +73,18 @@ public class OrderReservationService extends OrderValidationServiceGrpc.OrderVal
 	/**
 	 * 검증 예외 + 응답
 	 */
-	private void handleValidationException(StreamObserver<GrpcValidateResponse> responseObserver,
-		String message, Exception e) {
+	private void handleValidationException(
+			StreamObserver<GrpcValidateResponse> responseObserver,
+			String message,
+			Exception e
+	) {
 
 		// 실패 응답 생성
 		GrpcValidateResponse response = GrpcValidateResponse.newBuilder()
-			.setAccountId(0L) // 실패 시 기본값
-			.setResult(false)
-			.setMessage(message)
-			.build();
+				.setMemberId(0L) // 실패 시 기본값
+				.setResult(false)
+				.setMessage(message)
+				.build();
 
 		// 응답 전송
 		responseObserver.onNext(response);
@@ -90,12 +95,12 @@ public class OrderReservationService extends OrderValidationServiceGrpc.OrderVal
 
 	private BeforeTradeOrderDto convertToBeforeTradeOrderDto(GrpcValidateRequest request) {
 		return BeforeTradeOrderDto.builder()
-			.companyCode(request.getCompanyCode())
-			.type((request.getType()))
-			.totalQuantity(new BigDecimal(request.getTotalQuantity()))
-			.price(new BigDecimal(request.getPrice()))
-			.memberId(request.getMemberId())
-			.build();
+				.companyCode(request.getCompanyCode())
+				.type((request.getType()))
+				.totalQuantity(new BigDecimal(request.getTotalQuantity()))
+				.price(new BigDecimal(request.getPrice()))
+				.username(request.getUsername())
+				.build();
 	}
 
 	private Type convertToType(String type) {

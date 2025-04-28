@@ -21,17 +21,17 @@ public class HoldingsRepositoryImpl implements HoldingsRepository {
 	}
 
 	@Override
-	public Holdings getByAccountIdAndCompanyCode(final Long accountId, final String companyCode) {
-		return holdingsJpaRepository.findByAccountIdAndCompanyCode(accountId, companyCode)
+	public Holdings getByMemberIdAndCompanyCode(final Long memberId, final String companyCode) {
+		return holdingsJpaRepository.findByMemberIdAndCompanyCode(memberId, companyCode)
 				.orElseThrow(HoldingsNotFoundException::new);
 	}
 
 	@Override
-	public Holdings getOrDefaultByAccountIdAndCompanyCode(final Long accountId, final String companyCode) {
-		return holdingsJpaRepository.findByAccountIdAndCompanyCode(accountId, companyCode)
+	public Holdings getOrDefaultByMemberIdAndCompanyCode(final Long memberId, final String companyCode) {
+		return holdingsJpaRepository.findByMemberIdAndCompanyCode(memberId, companyCode)
 				.orElse(
 						Holdings.builder()
-								.accountId(accountId)
+								.memberId(memberId)
 								.companyCode(companyCode)
 								.quantity(BigDecimal.ZERO)
 								.reservedQuantity(BigDecimal.ZERO)

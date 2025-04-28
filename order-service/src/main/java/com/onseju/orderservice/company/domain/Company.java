@@ -1,10 +1,6 @@
 package com.onseju.orderservice.company.domain;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 import com.onseju.orderservice.order.OrderConstant;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,6 +12,9 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 @Entity
 @Getter
 @SuperBuilder
@@ -25,7 +24,6 @@ public class Company {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "company_id")
 	private Long id;
 
 	@Column(length = 20, nullable = false, unique = true)

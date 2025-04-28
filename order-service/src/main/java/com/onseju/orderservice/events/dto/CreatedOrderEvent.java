@@ -1,12 +1,11 @@
 package com.onseju.orderservice.events.dto;
 
-import java.math.BigDecimal;
-import java.util.UUID;
-
 import com.onseju.orderservice.order.domain.OrderStatus;
 import com.onseju.orderservice.order.domain.Type;
-
 import lombok.Builder;
+
+import java.math.BigDecimal;
+import java.util.UUID;
 
 @Builder
 public record CreatedOrderEvent(
@@ -19,6 +18,6 @@ public record CreatedOrderEvent(
 		BigDecimal remainingQuantity,
 		BigDecimal price,
 		Long timestamp,
-		Long accountId
+		Long memberId
 ) {
 }

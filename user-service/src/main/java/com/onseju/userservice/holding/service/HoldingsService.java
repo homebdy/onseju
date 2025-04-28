@@ -19,7 +19,7 @@ public class HoldingsService {
 	public void updateHoldingsAfterTrade(final AfterTradeHoldingsDto params) {
 		optimizeLoop(() -> {
 			final Holdings holdings
-					= holdingsRepository.getOrDefaultByAccountIdAndCompanyCode(params.accountId(), params.companyCode());
+					= holdingsRepository.getOrDefaultByMemberIdAndCompanyCode(params.accountId(), params.companyCode());
 			holdings.updateHoldings(params.type(), params.price(), params.quantity());
 			holdingsRepository.save(holdings);
 		});
@@ -29,7 +29,7 @@ public class HoldingsService {
 		optimizeLoop(() -> {
 			if (dto.type().isSell()) {
 				final Holdings holdings
-						= holdingsRepository.getByAccountIdAndCompanyCode(dto.accountId(), dto.companyCode());
+						= holdingsRepository.getByMemberIdAndCompanyCode(dto.memberId(), dto.companyCode());
 				holdings.validateExistHoldings();
 				holdings.validateEnoughHoldings(dto.totalQuantity());
 				holdings.reserveOrder(dto.totalQuantity());
