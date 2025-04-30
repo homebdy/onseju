@@ -61,6 +61,7 @@ public class OrderMapper {
 	public MatchedOrderUpdateEvent toMatchedOrderUpdateEvent(final Order order, final MatchedOrderUpdateDto dto) {
 		return new MatchedOrderUpdateEvent(
 				UUID.randomUUID(),
+				order.getType(),
 				order.getCompanyCode(),
 				order.getMemberId(),
 				dto.quantity(),

@@ -25,15 +25,14 @@ public class MatchedEventPublisher extends AbstractEventPublisher<MatchedOrderUp
     @Override
     protected void doPublish(MatchedOrderUpdateEvent event) {
         try {
-            publishUpdateUserEventToUserService(event);
+            publishToUserService(event);
         } catch (Exception ex) {
             log.error("체결 완료 이벤트 발행 중 오류 발생. event id: {}", event.id(), ex);
             throw new MatchedEventPublisherFailException();
         }
     }
 
-
-    private void publishUpdateUserEventToUserService(MatchedOrderUpdateEvent event) {
+    private void publishToUserService(MatchedOrderUpdateEvent event) {
         sendMessage(
             RabbitMQConfig.ONSEJU_EXCHANGE,
             RabbitMQConfig.USER_UPDATE_KEY,

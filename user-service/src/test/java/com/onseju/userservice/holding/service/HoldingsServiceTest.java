@@ -1,12 +1,13 @@
 package com.onseju.userservice.holding.service;
 
 import com.onseju.userservice.account.domain.Type;
+import com.onseju.userservice.events.dto.MatchedOrderUpdateEvent;
 import com.onseju.userservice.holding.domain.Holdings;
 import com.onseju.userservice.holding.exception.HoldingsNotFoundException;
 import com.onseju.userservice.holding.exception.InsufficientHoldingsException;
 import com.onseju.userservice.fake.FakeHoldingsRepository;
-import com.onseju.userservice.holding.service.dto.AfterTradeHoldingsDto;
-import com.onseju.userservice.holding.service.dto.BeforeTradeHoldingsDto;
+import com.onseju.userservice.holding.service.dto.MatchedHoldingUpdateDto;
+import com.onseju.userservice.holding.service.dto.CreatedOrderHoldingsUpdateDto;
 import com.onseju.userservice.holding.service.repository.HoldingsRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -46,11 +49,10 @@ class HoldingsServiceTest {
 		@DisplayName("보유 내역이 존재할 경우 이전 보유 내역과 합친다.")
 		void getExistingHoldings() {
 			// given
-			AfterTradeHoldingsDto params
-					= createAfterTradeHoldingsDto(Type.SELL, new BigDecimal(1000), new BigDecimal(10));
+			MatchedOrderUpdateEvent event = new MatchedOrderUpdateEvent(UUID.randomUUID(), Type.LIMIT_SELL, "005930", 1L, new BigDecimal(10), new BigDecimal(1000), Instant.now().getEpochSecond());
 
 			// when
-			holdingsService.updateHoldingsAfterTrade(params);
+			holdingsService.updateHoldingsAfterTrade(event);
 
 			// then
 			Holdings updatedHoldings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
@@ -62,14 +64,14 @@ class HoldingsServiceTest {
 		@DisplayName("보유 내역이 존재하지 않을 경우 새롭게 생성하여 저장한다.")
 		void createHoldingsWhenHoldingsNotExist() {
 			// given
-			AfterTradeHoldingsDto params = new AfterTradeHoldingsDto(Type.BUY, MEMBER_ID, "first", new BigDecimal(1000), new BigDecimal(10));
+			MatchedOrderUpdateEvent event = new MatchedOrderUpdateEvent(UUID.randomUUID(), Type.LIMIT_BUY, "first", MEMBER_ID, new BigDecimal(10), new BigDecimal(1000), Instant.now().getEpochSecond());
 
 			// when
-			holdingsService.updateHoldingsAfterTrade(params);
+			holdingsService.updateHoldingsAfterTrade(event);
 
 			// then
-			Holdings updatedHoldings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, "first");
-			assertThat(updatedHoldings.getCompanyCode()).isEqualTo(params.companyCode());
+			Holdings updatedHoldings = holdingsRepository.getByMemberIdAndCompanyCode(event.memberId(), event.companyCode());
+			assertThat(updatedHoldings.getCompanyCode()).isEqualTo(event.companyCode());
 			assertThat(updatedHoldings.getReservedQuantity()).isEqualTo(BigDecimal.ZERO);
 			assertThat(updatedHoldings.getQuantity()).isEqualTo(new BigDecimal(10));
 		}
@@ -78,50 +80,51 @@ class HoldingsServiceTest {
 		@DisplayName("매도 주문을 업데이트 할 경우, reserved, total quantity 모두 감소시킨다.")
 		void updateHoldingsForSellOrder() {
 			// given
-			AfterTradeHoldingsDto params = createAfterTradeHoldingsDto(Type.SELL, new BigDecimal(1000), new BigDecimal(10));
+			MatchedOrderUpdateEvent event = new MatchedOrderUpdateEvent(UUID.randomUUID(), Type.LIMIT_SELL, "005930", 1L, new BigDecimal(10), new BigDecimal(1000), Instant.now().getEpochSecond());
+
 			Holdings holdings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
 			BigDecimal beforeReservedQuantity = holdings.getReservedQuantity();
 			BigDecimal beforeQuantity = holdings.getQuantity();
 
 			// when
-			holdingsService.updateHoldingsAfterTrade(params);
+			holdingsService.updateHoldingsAfterTrade(event);
 
 			// then
 			Holdings updatedHoldings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
-			assertThat(updatedHoldings.getCompanyCode()).isEqualTo(params.companyCode());
-			assertThat(updatedHoldings.getReservedQuantity()).isEqualTo(beforeReservedQuantity.subtract(params.quantity()));
-			assertThat(updatedHoldings.getQuantity()).isEqualTo(beforeQuantity.subtract(params.quantity()));
+			assertThat(updatedHoldings.getCompanyCode()).isEqualTo(event.companyCode());
+			assertThat(updatedHoldings.getReservedQuantity()).isEqualTo(beforeReservedQuantity.subtract(event.quantity()));
+			assertThat(updatedHoldings.getQuantity()).isEqualTo(beforeQuantity.subtract(event.quantity()));
 		}
 
 		@Test
 		@DisplayName("매수 주문을 업데이트 할 경우, total quantity를 증가시킨다.")
 		void updateHoldingsForBuyOrder() {
 			// given
-			AfterTradeHoldingsDto params = createAfterTradeHoldingsDto(Type.BUY, new BigDecimal(1000), new BigDecimal(10));
+			MatchedOrderUpdateEvent event = new MatchedOrderUpdateEvent(UUID.randomUUID(), Type.LIMIT_BUY, "005930", 1L, new BigDecimal(10), new BigDecimal(1000), Instant.now().getEpochSecond());
 			Holdings holdings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
 			BigDecimal beforeReservedQuantity = holdings.getReservedQuantity();
 			BigDecimal beforeQuantity = holdings.getQuantity();
 
 			// when
-			holdingsService.updateHoldingsAfterTrade(params);
+			holdingsService.updateHoldingsAfterTrade(event);
 
 			// then
 			Holdings updatedHoldings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
-			assertThat(updatedHoldings.getCompanyCode()).isEqualTo(params.companyCode());
+			assertThat(updatedHoldings.getCompanyCode()).isEqualTo(event.companyCode());
 			assertThat(updatedHoldings.getReservedQuantity()).isEqualTo(beforeReservedQuantity);
-			assertThat(updatedHoldings.getQuantity()).isEqualTo(beforeQuantity.add(params.quantity()));
+			assertThat(updatedHoldings.getQuantity()).isEqualTo(beforeQuantity.add(event.quantity()));
 		}
 	}
 
 	@Nested
 	@DisplayName("보유 주식 개수를 확인하고, 예약 주문 개수를 저장한다.")
-	class SellOrderReservation {
+	class LIMIT_SELLOrderReservation {
 
 		@Test
 		@DisplayName("매수 주문일 경우 업데이트가 발생하지 않는다.")
 		void validateHoldingsForBuyOrder() {
 			// given
-			BeforeTradeHoldingsDto dto = createBeforeTradeHoldingsDto(Type.BUY, BigDecimal.ONE);
+			CreatedOrderHoldingsUpdateDto dto = createBeforeTradeHoldingsDto(Type.LIMIT_BUY, BigDecimal.ONE);
 			Holdings holdings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
 			BigDecimal beforeReservedQuantity = holdings.getReservedQuantity();
 			BigDecimal beforeQuantity = holdings.getQuantity();
@@ -137,9 +140,9 @@ class HoldingsServiceTest {
 
 		@Test
 		@DisplayName("매도 주문일 경우 reservedQuantity에 주문 수량을 추가한다.")
-		void validateHoldingsForSellOrder() {
+		void validateHoldingsForLIMIT_SELLOrder() {
 			// given
-			BeforeTradeHoldingsDto request = createBeforeTradeHoldingsDto(Type.SELL, BigDecimal.ONE);
+			CreatedOrderHoldingsUpdateDto request = createBeforeTradeHoldingsDto(Type.LIMIT_SELL, BigDecimal.ONE);
 			Holdings holdings = holdingsRepository.getByMemberIdAndCompanyCode(MEMBER_ID, COMPANY_CODE);
 			BigDecimal beforeReservedQuantity = holdings.getReservedQuantity();
 			BigDecimal beforeQuantity = holdings.getQuantity();
@@ -155,10 +158,10 @@ class HoldingsServiceTest {
 
 		@Test
 		@DisplayName("매도 주문일 경우, 입력한 종목에 대한 보유 주식이 없을 경우 예외가 발생한다.")
-		void throwExceptionWhenSellingStockWithoutHoldingAny() {
+		void throwExceptionWhenLIMIT_SELLingStockWithoutHoldingAny() {
 			// given
-			BeforeTradeHoldingsDto request = new BeforeTradeHoldingsDto(
-					Type.SELL,
+			CreatedOrderHoldingsUpdateDto request = new CreatedOrderHoldingsUpdateDto(
+					Type.LIMIT_SELL,
 					MEMBER_ID,
 					"InvalidCompanyCode",
 					BigDecimal.ONE
@@ -171,9 +174,9 @@ class HoldingsServiceTest {
 
 		@Test
 		@DisplayName("매도 주문일 경우, 입력한 종목에 대한 보유 주식의 개수가 부족할 경우 예외가 발생한다.")
-		void throwExceptionWhenSellingExceedingOwnedQuantity() {
+		void throwExceptionWhenLIMIT_SELLingExceedingOwnedQuantity() {
 			// given
-			BeforeTradeHoldingsDto request = createBeforeTradeHoldingsDto(Type.SELL, new BigDecimal(200));
+			CreatedOrderHoldingsUpdateDto request = createBeforeTradeHoldingsDto(Type.LIMIT_SELL, new BigDecimal(200));
 			Holdings holdings = createHoldings(new BigDecimal(10));
 			holdingsRepository.save(holdings);
 
@@ -183,12 +186,12 @@ class HoldingsServiceTest {
 		}
 	}
 
-	private AfterTradeHoldingsDto createAfterTradeHoldingsDto(Type type, BigDecimal price, BigDecimal quantity) {
-		return new AfterTradeHoldingsDto(type, MEMBER_ID, COMPANY_CODE, price, quantity);
+	private MatchedHoldingUpdateDto createAfterTradeHoldingsDto(Type type, BigDecimal price, BigDecimal quantity) {
+		return new MatchedHoldingUpdateDto(type, MEMBER_ID, COMPANY_CODE, price, quantity);
 	}
 
-	private BeforeTradeHoldingsDto createBeforeTradeHoldingsDto(Type type, BigDecimal quantity) {
-		return new BeforeTradeHoldingsDto(
+	private CreatedOrderHoldingsUpdateDto createBeforeTradeHoldingsDto(Type type, BigDecimal quantity) {
+		return new CreatedOrderHoldingsUpdateDto(
 				type,
 				MEMBER_ID,
 				COMPANY_CODE,

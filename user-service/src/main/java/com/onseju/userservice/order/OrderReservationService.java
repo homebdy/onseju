@@ -18,9 +18,6 @@ import net.devh.boot.grpc.server.service.GrpcService;
 
 import java.math.BigDecimal;
 
-import static com.onseju.userservice.account.domain.Type.BUY;
-import static com.onseju.userservice.account.domain.Type.SELL;
-
 
 @GrpcService
 @AllArgsConstructor
@@ -38,13 +35,12 @@ public class OrderReservationService extends OrderValidationServiceGrpc.OrderVal
 	public void validateOrder(GrpcValidateRequest request, StreamObserver<GrpcValidateResponse> responseObserver) {
 		try {
 			// 1. grpc -> beforetradeorderdto
-			BeforeTradeOrderDto dto = convertToBeforeTradeOrderDto(request);
-			Type type = convertToType(request.getType());
+			CreatedOrderDto dto = convertToCreatedOrderDto(request);
 
 			// 2. 검증
 			Long memberId = memberRepository.findByUsername(dto.username()).getId();
-			accountService.reserve(accountMapper.toBeforeTradeAccountDto(dto, type, memberId));
-			holdingsService.reserve(holdingsMapper.toBeforeTradeHoldingsDto(dto, type, memberId));
+			accountService.reserve(accountMapper.toCreatedOrderAccountUpdateDto(dto, dto.type(), memberId));
+			holdingsService.reserve(holdingsMapper.toOrderCreatedHoldingsUpdateDto(dto, dto.type(), memberId));
 
 			// 3. 검증 성공 응답 생성
 			GrpcValidateResponse response = GrpcValidateResponse.newBuilder()
@@ -93,21 +89,13 @@ public class OrderReservationService extends OrderValidationServiceGrpc.OrderVal
 
 
 
-	private BeforeTradeOrderDto convertToBeforeTradeOrderDto(GrpcValidateRequest request) {
-		return BeforeTradeOrderDto.builder()
+	private CreatedOrderDto convertToCreatedOrderDto(GrpcValidateRequest request) {
+		return CreatedOrderDto.builder()
 				.companyCode(request.getCompanyCode())
-				.type((request.getType()))
+				.type(Type.valueOf(request.getType()))
 				.totalQuantity(new BigDecimal(request.getTotalQuantity()))
 				.price(new BigDecimal(request.getPrice()))
 				.username(request.getUsername())
 				.build();
-	}
-
-	private Type convertToType(String type) {
-		if(type.equals("LIMIT_SELL") || type.equals("MARKET_SELL")) {
-			return SELL;
-		} else {
-			return BUY;
-		}
 	}
 }

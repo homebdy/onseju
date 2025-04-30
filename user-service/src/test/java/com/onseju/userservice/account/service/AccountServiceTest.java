@@ -4,8 +4,8 @@ import com.onseju.userservice.account.domain.Account;
 import com.onseju.userservice.account.domain.Type;
 import com.onseju.userservice.account.exception.AccountNotFoundException;
 import com.onseju.userservice.account.exception.InsufficientBalanceException;
-import com.onseju.userservice.account.service.dto.AfterTradeAccountDto;
-import com.onseju.userservice.account.service.dto.BeforeTradeAccountDto;
+import com.onseju.userservice.account.service.dto.CreatedOrderAccountUpdateDto;
+import com.onseju.userservice.events.dto.MatchedOrderUpdateEvent;
 import com.onseju.userservice.fake.FakeAccountRepository;
 import com.onseju.userservice.member.domain.Member;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -33,7 +35,6 @@ class AccountServiceTest {
 
 	@BeforeEach
 	void setUp() {
-
 		accountService = new AccountService(fakeAccountRepository);
 		member.createAccount();
 		fakeAccountRepository.save(member.getAccount());
@@ -48,29 +49,29 @@ class AccountServiceTest {
 		@DisplayName("매수 요청시, account에서 예약금을 저장한다.")
 		void updateAccountAfterBuyTradeSuccess() {
 			// given
-			AfterTradeAccountDto dto = new AfterTradeAccountDto(member.getId(), Type.BUY, BigDecimal.ONE, BigDecimal.ONE);
+			MatchedOrderUpdateEvent event = new MatchedOrderUpdateEvent(UUID.randomUUID(), Type.LIMIT_BUY, "005930", member.getId(), new BigDecimal(10), new BigDecimal(1000), Instant.now().getEpochSecond());
 
 			// when
-			accountService.updateAccountAfterTrade(dto);
+			accountService.updateAccountAfterTrade(event);
 
 			// then
 			Account account = fakeAccountRepository.getById(ACCOUNT_ID);
-			assertThat(account.getBalance()).isEqualTo(new BigDecimal(100000000).subtract(BigDecimal.ONE));
-			assertThat(account.getReservedBalance().abs()).isEqualTo(BigDecimal.ONE);
+			assertThat(account.getBalance()).isEqualTo(new BigDecimal(100000000).subtract(event.price().multiply(event.quantity())));
+			assertThat(account.getReservedBalance().abs()).isEqualTo(event.price().multiply(event.quantity()));
 		}
 
 		@Test
 		@DisplayName("매도 요청시, account에서 금액을 추가한다.")
 		void updateAccountAfterSellTradeSuccess() {
 			// given
-			AfterTradeAccountDto params = new AfterTradeAccountDto(member.getId(), Type.SELL, BigDecimal.ONE, BigDecimal.ONE);
+			MatchedOrderUpdateEvent event = new MatchedOrderUpdateEvent(UUID.randomUUID(), Type.LIMIT_SELL, "005930", member.getId(), new BigDecimal(10), new BigDecimal(1000), Instant.now().getEpochSecond());
 
 			// when
-			accountService.updateAccountAfterTrade(params);
+			accountService.updateAccountAfterTrade(event);
 
 			// then
 			Account account = fakeAccountRepository.getById(ACCOUNT_ID);
-			assertThat(account.getBalance()).isEqualTo(new BigDecimal(100000001));
+			assertThat(account.getBalance()).isEqualTo(new BigDecimal(100000000).add(event.price().multiply(event.quantity())));
 		}
 	}
 
@@ -82,7 +83,7 @@ class AccountServiceTest {
 		@DisplayName("정상적으로 동작할 경우 예외가 없이 동작한다.")
 		void getAccountId() {
 			// given
-			BeforeTradeAccountDto dto = getOrderValidationRequest(member.getId(), Type.BUY, new BigDecimal(1000));
+			CreatedOrderAccountUpdateDto dto = getOrderValidationRequest(member.getId(), Type.LIMIT_BUY, new BigDecimal(1000));
 
 			// when, then
 			assertThatNoException().isThrownBy(() -> accountService.reserve(dto));
@@ -92,7 +93,7 @@ class AccountServiceTest {
 		@DisplayName("매도 주문의 경우 업데이트가 발생하지 않는다.")
 		void updateNothingForSellOrder() {
 			// given
-			BeforeTradeAccountDto request = getOrderValidationRequest(member.getId(), Type.SELL, new BigDecimal(1000));
+			CreatedOrderAccountUpdateDto request = getOrderValidationRequest(member.getId(), Type.LIMIT_SELL, new BigDecimal(1000));
 			Account before = fakeAccountRepository.getByMemberId(member.getId());
 			Long accountId = before.getId();
 			BigDecimal beforeBalance = before.getBalance();
@@ -113,10 +114,9 @@ class AccountServiceTest {
 		void updateReservedBalanceForBuyOrder() {
 			// given
 			BigDecimal price = new BigDecimal(1000);
-			BeforeTradeAccountDto request = getOrderValidationRequest(member.getId(), Type.BUY, price);
+			CreatedOrderAccountUpdateDto request = getOrderValidationRequest(member.getId(), Type.LIMIT_BUY, price);
 
 			Account before = fakeAccountRepository.getByMemberId(member.getId());
-			Long accountId = before.getId();
 			BigDecimal beforeBalance = before.getBalance();
 			BigDecimal beforeReservedBalance = before.getReservedBalance();
 
@@ -135,7 +135,7 @@ class AccountServiceTest {
 		void throwExceptionWhenInsufficientBalance() {
 			// given
 			Account before = fakeAccountRepository.getByMemberId(member.getId());
-			BeforeTradeAccountDto request = getOrderValidationRequest(member.getId(), Type.BUY, before.getBalance().add(BigDecimal.ONE));
+			CreatedOrderAccountUpdateDto request = getOrderValidationRequest(member.getId(), Type.LIMIT_BUY, before.getBalance().add(BigDecimal.ONE));
 
 			// when, then
 			assertThatThrownBy(() -> accountService.reserve(request))
@@ -147,15 +147,15 @@ class AccountServiceTest {
 		void throwNotFoundExceptionWhenInvalidMemberId() {
 			// given
 			Long memberId = Long.MAX_VALUE;
-			BeforeTradeAccountDto request = getOrderValidationRequest(memberId, Type.BUY, new BigDecimal(1000));
+			CreatedOrderAccountUpdateDto request = getOrderValidationRequest(memberId, Type.LIMIT_BUY, new BigDecimal(1000));
 
 			// when, then
 			assertThatThrownBy(() -> accountService.reserve(request))
 					.isInstanceOf(AccountNotFoundException.class);
 		}
 
-		private BeforeTradeAccountDto getOrderValidationRequest(Long memberId, Type type, BigDecimal price) {
-			return new BeforeTradeAccountDto(
+		private CreatedOrderAccountUpdateDto getOrderValidationRequest(Long memberId, Type type, BigDecimal price) {
+			return new CreatedOrderAccountUpdateDto(
 					memberId,
 					type,
 					price,

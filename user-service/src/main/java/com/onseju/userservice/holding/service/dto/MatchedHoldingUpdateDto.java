@@ -1,15 +1,12 @@
 package com.onseju.userservice.holding.service.dto;
 
-import java.math.BigDecimal;
-
 import com.onseju.userservice.account.domain.Type;
 
-import lombok.Builder;
+import java.math.BigDecimal;
 
-@Builder
-public record AfterTradeHoldingsDto(
+public record MatchedHoldingUpdateDto(
 		Type type,
-		Long accountId,
+		Long memberId,
 		String companyCode,
 		BigDecimal price,
 		BigDecimal quantity

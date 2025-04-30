@@ -1,12 +1,9 @@
 package com.onseju.orderservice.tradehistory.service;
 
 import com.onseju.orderservice.events.dto.MatchedEvent;
-import com.onseju.orderservice.grpc.MemberReaderServiceGrpc;
-import com.onseju.orderservice.order.client.MemberReaderClient;
 import com.onseju.orderservice.order.domain.Order;
 import com.onseju.orderservice.order.repository.OrderRepositoryImpl;
 import com.onseju.orderservice.tradehistory.dto.MatchingNotificationDto;
-import com.onseju.orderservice.tradehistory.dto.ReadMemberDto;
 import com.onseju.orderservice.tradehistory.repository.SseEmitterRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,13 +17,12 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TradeHistoryNotificationService extends MemberReaderServiceGrpc.MemberReaderServiceImplBase {
+public class TradeHistoryNotificationService {
 
     private static final Long NOTIFICATION_TIME_OUT = 60L * 60 * 60 * 60;
 
     private final SseEmitterRepository orderNotificationRepository;
     private final OrderRepositoryImpl orderRepository;
-    private final MemberReaderClient memberReaderClient;
 
     public SseEmitter subscribe(Long memberId) {
         SseEmitter emitter = new SseEmitter(NOTIFICATION_TIME_OUT);
@@ -47,7 +43,7 @@ public class TradeHistoryNotificationService extends MemberReaderServiceGrpc.Mem
 
     private void sendNotificationToSellOrder(final MatchedEvent event) throws IOException {
         Order sellOrder = orderRepository.getById(event.sellOrderId());
-        Long memberId = getAccountId(sellOrder.getMemberId());
+        Long memberId = sellOrder.getMemberId();
         Optional<SseEmitter> sellOrderEmitter = orderNotificationRepository.findByMemberId(memberId);
 
         if (sellOrderEmitter.isPresent()) {
@@ -60,7 +56,7 @@ public class TradeHistoryNotificationService extends MemberReaderServiceGrpc.Mem
 
     private void sendNotificationToBuyOrder(final MatchedEvent event) throws IOException {
         Order buyOrder = orderRepository.getById(event.buyOrderId());
-        Long memberId = getAccountId(buyOrder.getMemberId());
+        Long memberId = buyOrder.getMemberId();
         Optional<SseEmitter> buyOrderEmitter = orderNotificationRepository.findByMemberId(memberId);
 
         if (buyOrderEmitter.isPresent()) {
@@ -71,9 +67,6 @@ public class TradeHistoryNotificationService extends MemberReaderServiceGrpc.Mem
         }
     }
 
-    private Long getAccountId(Long accountId) {
-        return memberReaderClient.readMember(new ReadMemberDto(accountId)).memberId();
-    }
 
     private MatchingNotificationDto toMatchingNotificationDto(final Order order, final MatchedEvent event) {
         return MatchingNotificationDto.builder()

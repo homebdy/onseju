@@ -1,9 +1,9 @@
 package com.onseju.userservice.account.service;
 
 import com.onseju.userservice.account.domain.Account;
-import com.onseju.userservice.account.service.dto.AfterTradeAccountDto;
-import com.onseju.userservice.account.service.dto.BeforeTradeAccountDto;
+import com.onseju.userservice.account.service.dto.CreatedOrderAccountUpdateDto;
 import com.onseju.userservice.account.service.repository.AccountRepository;
+import com.onseju.userservice.events.dto.MatchedOrderUpdateEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -19,20 +19,20 @@ public class AccountService {
 
 	private final AccountRepository accountRepository;
 
-	public void updateAccountAfterTrade(final AfterTradeAccountDto dto) {
+	public void updateAccountAfterTrade(final MatchedOrderUpdateEvent event) {
 		optimizeLoop(() -> {
-			Account account = accountRepository.getByMemberId(dto.memberId());
+			Account account = accountRepository.getByMemberId(event.memberId());
 			account.processOrder(
-					dto.type(),
-					dto.price(),
-					dto.quantity()
+					event.type(),
+					event.price(),
+					event.quantity()
 			);
 			accountRepository.save(account);
 			return account.getId();
 		});
 	}
 
-	public void reserve(final BeforeTradeAccountDto dto) {
+	public void reserve(final CreatedOrderAccountUpdateDto dto) {
 		optimizeLoop(() -> {
 			if (dto.type().isBuy()) {
 				Account account = accountRepository.getByMemberId(dto.memberId());

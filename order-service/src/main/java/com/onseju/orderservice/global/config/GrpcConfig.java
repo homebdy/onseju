@@ -1,13 +1,10 @@
 package com.onseju.orderservice.global.config;
 
-import com.onseju.orderservice.grpc.MemberReaderServiceGrpc;
+import com.onseju.orderservice.grpc.OrderValidationServiceGrpc;
+import net.devh.boot.grpc.client.channelfactory.GrpcChannelFactory;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import net.devh.boot.grpc.client.channelfactory.GrpcChannelFactory;
-
-import com.onseju.orderservice.grpc.OrderValidationServiceGrpc;
 
 @Configuration
 @ImportAutoConfiguration({
@@ -25,13 +22,6 @@ public class GrpcConfig {
 		GrpcChannelFactory grpcChannelFactory) {
 		return OrderValidationServiceGrpc.newBlockingStub(
 			grpcChannelFactory.createChannel("user-service"));
-	}
-
-	@Bean
-	public MemberReaderServiceGrpc.MemberReaderServiceBlockingStub memberReaderServiceBlockingStub(
-			GrpcChannelFactory grpcChannelFactory) {
-		return MemberReaderServiceGrpc.newBlockingStub(
-				grpcChannelFactory.createChannel("user-service"));
 	}
 }
 

@@ -4,12 +4,12 @@ import com.onseju.userservice.account.domain.Type;
 import com.onseju.userservice.account.exception.InsufficientBalanceException;
 import com.onseju.userservice.account.mapper.AccountMapper;
 import com.onseju.userservice.account.service.AccountService;
-import com.onseju.userservice.account.service.dto.BeforeTradeAccountDto;
+import com.onseju.userservice.account.service.dto.CreatedOrderAccountUpdateDto;
 import com.onseju.userservice.grpc.GrpcValidateRequest;
 import com.onseju.userservice.grpc.GrpcValidateResponse;
 import com.onseju.userservice.holding.mapper.HoldingsMapper;
 import com.onseju.userservice.holding.service.HoldingsService;
-import com.onseju.userservice.holding.service.dto.BeforeTradeHoldingsDto;
+import com.onseju.userservice.holding.service.dto.CreatedOrderHoldingsUpdateDto;
 import com.onseju.userservice.member.domain.Member;
 import com.onseju.userservice.member.service.repository.MemberRepository;
 import io.grpc.stub.StreamObserver;
@@ -64,25 +64,14 @@ class OrderReservationServiceTest {
 			.build();
 
 		when(memberRepository.findByUsername(any())).thenReturn(Member.builder().id(1L).username("username").build());
-		BeforeTradeOrderDto dto = new BeforeTradeOrderDto("AAPL", "LIMIT_BUY",
+		CreatedOrderDto dto = new CreatedOrderDto("AAPL", Type.LIMIT_BUY,
 			new BigDecimal("10"), new BigDecimal("150.5"), 123L,"username");
 
-		BeforeTradeAccountDto accountDto = BeforeTradeAccountDto.builder()
-			.memberId(1L)
-			.type(Type.BUY)  // 또는 Type.SELL
-			.price(new BigDecimal("150.50"))
-			.totalQuantity(new BigDecimal("10"))
-			.build();
+		CreatedOrderAccountUpdateDto accountDto = new CreatedOrderAccountUpdateDto(1L, Type.LIMIT_BUY, BigDecimal.ONE, BigDecimal.ONE);
+		CreatedOrderHoldingsUpdateDto holdingsDto = new CreatedOrderHoldingsUpdateDto(Type.LIMIT_SELL, 1L, "005930", BigDecimal.ONE);
 
-		BeforeTradeHoldingsDto holdingsDto = BeforeTradeHoldingsDto.builder()
-			.type(Type.SELL)
-			.memberId(1L)
-			.companyCode("AAPL")
-			.totalQuantity(new BigDecimal("5"))
-			.build();
-
-		when(accountMapper.toBeforeTradeAccountDto(any(), any(), any())).thenReturn(accountDto);
-		when(holdingsMapper.toBeforeTradeHoldingsDto(any(), any(), any())).thenReturn(holdingsDto);
+		when(accountMapper.toCreatedOrderAccountUpdateDto(any(), any(), any())).thenReturn(accountDto);
+		when(holdingsMapper.toOrderCreatedHoldingsUpdateDto(any(), any(), any())).thenReturn(holdingsDto);
 
 		StreamObserver<GrpcValidateResponse> responseObserver = mock(StreamObserver.class);
 

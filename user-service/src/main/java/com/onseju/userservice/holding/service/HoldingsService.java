@@ -1,8 +1,8 @@
 package com.onseju.userservice.holding.service;
 
+import com.onseju.userservice.events.dto.MatchedOrderUpdateEvent;
 import com.onseju.userservice.holding.domain.Holdings;
-import com.onseju.userservice.holding.service.dto.AfterTradeHoldingsDto;
-import com.onseju.userservice.holding.service.dto.BeforeTradeHoldingsDto;
+import com.onseju.userservice.holding.service.dto.CreatedOrderHoldingsUpdateDto;
 import com.onseju.userservice.holding.service.repository.HoldingsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -16,16 +16,16 @@ public class HoldingsService {
 	private final HoldingsRepository holdingsRepository;
 
 	@Transactional
-	public void updateHoldingsAfterTrade(final AfterTradeHoldingsDto params) {
+	public void updateHoldingsAfterTrade(final MatchedOrderUpdateEvent event) {
 		optimizeLoop(() -> {
 			final Holdings holdings
-					= holdingsRepository.getOrDefaultByMemberIdAndCompanyCode(params.accountId(), params.companyCode());
-			holdings.updateHoldings(params.type(), params.price(), params.quantity());
+					= holdingsRepository.getOrDefaultByMemberIdAndCompanyCode(event.memberId(), event.companyCode());
+			holdings.updateHoldings(event.type(), event.price(), event.quantity());
 			holdingsRepository.save(holdings);
 		});
 	}
 
-	public void reserve(final BeforeTradeHoldingsDto dto) {
+	public void reserve(final CreatedOrderHoldingsUpdateDto dto) {
 		optimizeLoop(() -> {
 			if (dto.type().isSell()) {
 				final Holdings holdings
