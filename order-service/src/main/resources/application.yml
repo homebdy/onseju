@@ -4,8 +4,6 @@ server:
 spring:
   application:
     name: order-service
-  config:
-    import: optional:file:.env[.properties]
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -14,7 +12,7 @@ spring:
     password: ${DB_PASSWORD}
 
   jpa:
-    hibernate.ddl-auto: update
+    hibernate.ddl-auto: create
     show-sql: true
     properties:
       hibernate.criteria.literal_handling_mode: BIND
@@ -77,5 +75,5 @@ user-service:
 grpc:
   client:
     order-service:
-      address: static://${USER_SERVICE_BASE_URL}:9090
+      address: static://localhost:9090
       negotiation-type: PLAINTEXT

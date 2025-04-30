@@ -1,8 +1,7 @@
 package com.onseju.orderservice.events.exception;
 
-import org.springframework.http.HttpStatus;
-
 import com.onseju.orderservice.global.exception.BaseException;
+import org.springframework.http.HttpStatus;
 
 
 public class OrderEventPublisherFailException extends BaseException {

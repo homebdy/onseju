@@ -13,31 +13,31 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 public class HoldingsRepositoryImpl implements HoldingsRepository {
 
-	private final HoldingsJpaRepository holdingsJpaRepository;
+    private final HoldingsJpaRepository holdingsJpaRepository;
 
-	@Override
-	public Holdings save(final Holdings holdings) {
-		return holdingsJpaRepository.save(holdings);
-	}
+    @Override
+    public Holdings save(final Holdings holdings) {
+        return holdingsJpaRepository.save(holdings);
+    }
 
-	@Override
-	public Holdings getByAccountIdAndCompanyCode(final Long accountId, final String companyCode) {
-		return holdingsJpaRepository.findByAccountIdAndCompanyCode(accountId, companyCode)
-				.orElseThrow(HoldingsNotFoundException::new);
-	}
+    @Override
+    public Holdings getByMemberIdAndCompanyCode(final Long memberId, final String companyCode) {
+        return holdingsJpaRepository.findByMemberIdAndCompanyCode(memberId, companyCode)
+                .orElseThrow(HoldingsNotFoundException::new);
+    }
 
-	@Override
-	public Holdings getOrDefaultByAccountIdAndCompanyCode(final Long accountId, final String companyCode) {
-		return holdingsJpaRepository.findByAccountIdAndCompanyCode(accountId, companyCode)
-				.orElse(
-						Holdings.builder()
-								.accountId(accountId)
-								.companyCode(companyCode)
-								.quantity(BigDecimal.ZERO)
-								.reservedQuantity(BigDecimal.ZERO)
-								.averagePrice(BigDecimal.ZERO)
-								.totalPurchasePrice(BigDecimal.ZERO)
-								.build()
-				);
-	}
+    @Override
+    public Holdings getOrDefaultByMemberIdAndCompanyCode(final Long memberId, final String companyCode) {
+        return holdingsJpaRepository.findByMemberIdAndCompanyCode(memberId, companyCode)
+                .orElse(
+                        Holdings.builder()
+                                .memberId(memberId)
+                                .companyCode(companyCode)
+                                .quantity(BigDecimal.ZERO)
+                                .reservedQuantity(BigDecimal.ZERO)
+                                .averagePrice(BigDecimal.ZERO)
+                                .totalPurchasePrice(BigDecimal.ZERO)
+                                .build()
+                );
+    }
 }

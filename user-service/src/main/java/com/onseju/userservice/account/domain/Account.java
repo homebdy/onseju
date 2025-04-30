@@ -30,63 +30,62 @@ import static jakarta.persistence.FetchType.LAZY;
 @Slf4j
 public class Account extends BaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "account_id")
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column(nullable = false)
-	private BigDecimal balance;
+    @Column(nullable = false)
+    private BigDecimal balance;
 
-	@Column(nullable = false)
-	private BigDecimal reservedBalance;
+    @Column(nullable = false)
+    private BigDecimal reservedBalance;
 
-	@OneToOne(fetch = LAZY)
-	@JoinColumn(name = "member_id", nullable = false)
-	private Member member;
+    @OneToOne(fetch = LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
-	@Version
-	private Long version;
+    @Version
+    private Long version;
 
-	public Account(final Member member) {
-		this.member = member;
-		this.balance = new BigDecimal("100000000");  // 초기 잔액 설정
-		this.reservedBalance = BigDecimal.ZERO;
-	}
+    public Account(final Member member) {
+        this.member = member;
+        this.balance = new BigDecimal("100000000");  // 초기 잔액 설정
+        this.reservedBalance = BigDecimal.ZERO;
+    }
 
-	// 예약 주문 처리
-	public void processReservedOrder(final BigDecimal amount) {
-		validateDepositBalance(amount);
-		this.reservedBalance = this.reservedBalance.add(amount);
-	}
+    // 예약 주문 처리
+    public void processReservedOrder(final BigDecimal amount) {
+        validateDepositBalance(amount);
+        this.reservedBalance = this.reservedBalance.add(amount);
+    }
 
-	public BigDecimal getAvailableBalance() {
-		return this.balance.subtract(this.reservedBalance);
-	}
+    public BigDecimal getAvailableBalance() {
+        return this.balance.subtract(this.reservedBalance);
+    }
 
-	public void processOrder(final Type type, final BigDecimal price, final BigDecimal quantity) {
-		final BigDecimal totalPrice = price.multiply(quantity);
-		if (type.isBuy()) {
-			processBuyOrder(totalPrice);
-		} else {
-			processSellOrder(totalPrice);
-		}
-	}
+    public void processOrder(final Type type, final BigDecimal price, final BigDecimal quantity) {
+        final BigDecimal totalPrice = price.multiply(quantity);
+        if (type.isBuy()) {
+            processBuyOrder(totalPrice);
+        } else {
+            processSellOrder(totalPrice);
+        }
+    }
 
-	private void processBuyOrder(final BigDecimal totalPrice) {
-		validateDepositBalance(totalPrice);
-		this.reservedBalance = this.reservedBalance.subtract(totalPrice);
-		this.balance = this.balance.subtract(totalPrice);
-	}
+    private void processBuyOrder(final BigDecimal totalPrice) {
+        validateDepositBalance(totalPrice);
+        this.reservedBalance = this.reservedBalance.subtract(totalPrice);
+        this.balance = this.balance.subtract(totalPrice);
+    }
 
-	private void processSellOrder(final BigDecimal totalPrice) {
-		this.balance = this.balance.add(totalPrice);
-	}
+    private void processSellOrder(final BigDecimal totalPrice) {
+        this.balance = this.balance.add(totalPrice);
+    }
 
-	public void validateDepositBalance(final BigDecimal totalPrice) {
-		final BigDecimal availableBalance = getAvailableBalance();
-		if (availableBalance.compareTo(totalPrice) < 0) {
-			throw new InsufficientBalanceException();
-		}
-	}
+    public void validateDepositBalance(final BigDecimal totalPrice) {
+        final BigDecimal availableBalance = getAvailableBalance();
+        if (availableBalance.compareTo(totalPrice) < 0) {
+            throw new InsufficientBalanceException();
+        }
+    }
 }

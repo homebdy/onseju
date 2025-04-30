@@ -1,18 +1,12 @@
 package com.onseju.matchingservice.engine;
 
+import com.onseju.matchingservice.domain.CompanyCode;
 import com.onseju.matchingservice.domain.OrderStatus;
 import com.onseju.matchingservice.domain.TradeOrder;
 import com.onseju.matchingservice.domain.Type;
-import com.onseju.matchingservice.events.MatchedEvent;
-import com.onseju.matchingservice.events.OrderBookSyncedEvent;
-import com.onseju.matchingservice.events.publisher.EventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -21,21 +15,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-@ExtendWith(MockitoExtension.class)
 class MatchingEngineTest {
 
-    @InjectMocks
     private MatchingEngine matchingEngine;
-
-    @Mock
-    private EventPublisher<MatchedEvent> matchedEventPublisher;
-
-    @Mock
-    private EventPublisher<OrderBookSyncedEvent> orderBookSyncedEventEventPublisher;
 
     @BeforeEach
     void setUp() {
-        matchingEngine = new MatchingEngine(matchedEventPublisher, orderBookSyncedEventEventPublisher);
+        matchingEngine = new MatchingEngine();
     }
 
     @Test
@@ -89,13 +75,13 @@ class MatchingEngineTest {
         assertThat(order3.getType()).isEqualTo(Type.MARKET_BUY);
     }
 
-    private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long accountId) {
+    private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long memberId) {
         return TradeOrder.builder()
                 .id(id)
                 .type(type)
                 .price(price)
-                .accountId(accountId)
-                .companyCode("005930")
+                .memberId(memberId)
+                .companyCode(new CompanyCode("005930"))
                 .status(OrderStatus.ACTIVE)
                 .totalQuantity(quantity)
                 .remainingQuantity(new AtomicReference<>(quantity))

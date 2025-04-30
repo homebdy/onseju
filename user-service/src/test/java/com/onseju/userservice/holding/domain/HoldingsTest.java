@@ -49,7 +49,7 @@ class HoldingsTest {
         BigDecimal updateQuantity = BigDecimal.valueOf(10);
 
         // When
-        holdings.updateHoldings(Type.BUY, updatePrice, updateQuantity);
+        holdings.updateHoldings(Type.LIMIT_BUY, updatePrice, updateQuantity);
 
         // Then
         assertThat(holdings.getQuantity()).isEqualTo(BigDecimal.valueOf(110));
@@ -65,7 +65,7 @@ class HoldingsTest {
         BigDecimal originalTotalQuantity = holdings.getTotalPurchasePrice();
 
         // When
-        holdings.updateHoldings(Type.SELL, BigDecimal.ZERO, updateQuantity);
+        holdings.updateHoldings(Type.LIMIT_SELL, BigDecimal.ZERO, updateQuantity);
 
         // Then
         assertThat(holdings.getQuantity()).isEqualTo(BigDecimal.valueOf(99));
@@ -79,7 +79,7 @@ class HoldingsTest {
         BigDecimal quantity = BigDecimal.valueOf(100);
 
         // when
-        holdings.updateHoldings(Type.SELL, new BigDecimal(1000), quantity);
+        holdings.updateHoldings(Type.LIMIT_SELL, new BigDecimal(1000), quantity);
 
         // then
         assertThat(holdings.getDeletedDateTime()).isNotNull();
@@ -94,7 +94,7 @@ class HoldingsTest {
         BigDecimal averagePrice = holdings.getAveragePrice();
 
         // when
-        holdings.updateHoldings(Type.SELL, new BigDecimal(1000), updatedQuantity);
+        holdings.updateHoldings(Type.LIMIT_SELL, new BigDecimal(1000), updatedQuantity);
 
         // then
         assertThat(holdings.getTotalPurchasePrice()).isEqualTo(totalPurchasePrice.subtract(averagePrice.multiply(updatedQuantity)));

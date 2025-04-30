@@ -14,30 +14,30 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ApiResponse<Void>> handleBaseException(BaseException ex) {
         log.error("[{}] error occurred: {}",
-            ex.getClass().getSimpleName(),
-            ex.getMessage()
+                ex.getClass().getSimpleName(),
+                ex.getMessage()
         );
 
         return ResponseEntity
-            .status(ex.getStatus())
-            .body(new ApiResponse<>(
-                ex.getMessage(),
-                null,
-                ex.getStatus().value()
-            ));
+                .status(ex.getStatus())
+                .body(new ApiResponse<>(
+                        ex.getMessage(),
+                        null,
+                        ex.getStatus().value()
+                ));
     }
 
-    
+
     // Handle unexpected exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception ex) {
         log.error("Unexpected error occurred", ex);
         return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(new ApiResponse<>(
-                "서버 오류가 발생했습니다",
-                null,
-                HttpStatus.INTERNAL_SERVER_ERROR.value()
-            ));
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponse<>(
+                        "서버 오류가 발생했습니다",
+                        null,
+                        HttpStatus.INTERNAL_SERVER_ERROR.value()
+                ));
     }
 }

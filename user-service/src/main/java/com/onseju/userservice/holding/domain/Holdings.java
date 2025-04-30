@@ -28,87 +28,86 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Slf4j
 @Table(name = "holdings",
-		uniqueConstraints = {
-				@UniqueConstraint(
-						name = "uk_account_company",
-						columnNames = {"account_id", "company_code"}
-				)
-		})
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_account_company",
+                        columnNames = {"member_id", "company_code"}
+                )
+        })
 public class Holdings extends BaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "holdings_id")
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column(nullable = false, updatable = false)
-	private String companyCode;
+    @Column(nullable = false, updatable = false)
+    private String companyCode;
 
-	@Column(nullable = false)
-	private BigDecimal quantity;
+    @Column(nullable = false)
+    private BigDecimal quantity;
 
-	// 앞으로 거래될 예정인 주식의 수
-	@Column(nullable = false)
-	private BigDecimal reservedQuantity;
+    // 앞으로 거래될 예정인 주식의 수
+    @Column(nullable = false)
+    private BigDecimal reservedQuantity;
 
-	@Column(nullable = false)
-	private BigDecimal averagePrice;
+    @Column(nullable = false)
+    private BigDecimal averagePrice;
 
-	@Column(nullable = false)
-	private BigDecimal totalPurchasePrice;
+    @Column(nullable = false)
+    private BigDecimal totalPurchasePrice;
 
-	@Column(nullable = false)
-	private Long accountId;
+    @Column(nullable = false)
+    private Long memberId;
 
-	@Version
-	private Long version;
+    @Version
+    private Long version;
 
-	public void validateEnoughHoldings(final BigDecimal checkQuantity) {
-		if (getAvailableQuantity().compareTo(checkQuantity) < 0) {
-			throw new InsufficientHoldingsException();
-		}
-	}
+    public void validateEnoughHoldings(final BigDecimal checkQuantity) {
+        if (getAvailableQuantity().compareTo(checkQuantity) < 0) {
+            throw new InsufficientHoldingsException();
+        }
+    }
 
-	public void validateExistHoldings() {
-		if (this.quantity.equals(BigDecimal.ZERO)) {
-			throw new HoldingsNotFoundException();
-		}
-	}
+    public void validateExistHoldings() {
+        if (this.quantity.equals(BigDecimal.ZERO)) {
+            throw new HoldingsNotFoundException();
+        }
+    }
 
-	private BigDecimal getAvailableQuantity() {
-		return this.quantity.subtract(this.reservedQuantity);
-	}
+    private BigDecimal getAvailableQuantity() {
+        return this.quantity.subtract(this.reservedQuantity);
+    }
 
-	// 예약 주문 처리
-	public void reserveOrder(final BigDecimal reservedQuantity) {
-		this.reservedQuantity = this.reservedQuantity.add(reservedQuantity);
-	}
+    // 예약 주문 처리
+    public void reserveOrder(final BigDecimal reservedQuantity) {
+        this.reservedQuantity = this.reservedQuantity.add(reservedQuantity);
+    }
 
-	public void updateHoldings(final Type type, final BigDecimal updatePrice, final BigDecimal updateQuantity) {
-		if (type.isSell()) {
-			updateSellHoldings(updateQuantity);
-		} else {
-			updateBuyHoldings(updatePrice, updateQuantity);
-		}
-	}
+    public void updateHoldings(final Type type, final BigDecimal updatePrice, final BigDecimal updateQuantity) {
+        if (type.isSell()) {
+            updateSellHoldings(updateQuantity);
+        } else {
+            updateBuyHoldings(updatePrice, updateQuantity);
+        }
+    }
 
-	private void updateBuyHoldings(final BigDecimal updatePrice, final BigDecimal updateQuantity) {
-		this.quantity = this.quantity.add(updateQuantity);
-		this.totalPurchasePrice = this.totalPurchasePrice.add(updateQuantity.multiply(updatePrice));
-		this.averagePrice = this.totalPurchasePrice.divide(this.quantity, 4, RoundingMode.HALF_UP);
-	}
+    private void updateBuyHoldings(final BigDecimal updatePrice, final BigDecimal updateQuantity) {
+        this.quantity = this.quantity.add(updateQuantity);
+        this.totalPurchasePrice = this.totalPurchasePrice.add(updateQuantity.multiply(updatePrice));
+        this.averagePrice = this.totalPurchasePrice.divide(this.quantity, 4, RoundingMode.HALF_UP);
+    }
 
-	// 새로운 총 매수 금액 = 기존 총 매수 금액 − (평단가×매도 수량)
-	// 손익 = (매도가 - 평단가) × 매도 수량
-	private void updateSellHoldings(final BigDecimal updateQuantity) {
-		this.quantity = this.quantity.subtract(updateQuantity);
-		this.totalPurchasePrice = this.totalPurchasePrice.subtract(updateQuantity.multiply(this.averagePrice));
+    // 새로운 총 매수 금액 = 기존 총 매수 금액 − (평단가×매도 수량)
+    // 손익 = (매도가 - 평단가) × 매도 수량
+    private void updateSellHoldings(final BigDecimal updateQuantity) {
+        this.quantity = this.quantity.subtract(updateQuantity);
+        this.totalPurchasePrice = this.totalPurchasePrice.subtract(updateQuantity.multiply(this.averagePrice));
 
-		// 예약 수량 감소 (체결된 만큼 예약 수량에서 제거)
-		this.reservedQuantity = this.reservedQuantity.subtract(updateQuantity);
+        // 예약 수량 감소 (체결된 만큼 예약 수량에서 제거)
+        this.reservedQuantity = this.reservedQuantity.subtract(updateQuantity);
 
-		if (this.quantity.equals(BigDecimal.ZERO)) {
-			this.softDelete(LocalDateTime.now());
-		}
-	}
+        if (this.quantity.equals(BigDecimal.ZERO)) {
+            this.softDelete(LocalDateTime.now());
+        }
+    }
 }

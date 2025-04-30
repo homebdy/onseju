@@ -18,24 +18,24 @@ class TradeOrderTest {
     void setUp() {
         buyOrder = TradeOrder.builder()
                 .id(1L)
-                .companyCode("ABC")
+                .companyCode(new CompanyCode("005930"))
                 .type(Type.LIMIT_BUY)
                 .status(OrderStatus.ACTIVE)
                 .totalQuantity(BigDecimal.valueOf(100))
                 .remainingQuantity(new AtomicReference<>(BigDecimal.valueOf(100)))
                 .price(BigDecimal.valueOf(5000))
-                .accountId(10L)
+                .memberId(10L)
                 .build();
 
         sellOrder = TradeOrder.builder()
                 .id(2L)
-                .companyCode("ABC")
+                .companyCode(new CompanyCode("005930"))
                 .type(Type.LIMIT_SELL)
                 .status(OrderStatus.ACTIVE)
                 .totalQuantity(BigDecimal.valueOf(50))
                 .remainingQuantity(new AtomicReference<>(BigDecimal.valueOf(50)))
                 .price(BigDecimal.valueOf(5000))
-                .accountId(20L)
+                .memberId(20L)
                 .build();
     }
 
@@ -74,11 +74,11 @@ class TradeOrderTest {
     @DisplayName("같은 계정으로부터의 주문일 경우 true를 반환한다.")
     void returnTrueWhenSameAccount() {
         // given
-        TradeOrder order1 = TradeOrder.builder().id(1L).accountId(1L).build();
-        TradeOrder order2 = TradeOrder.builder().id(2L).accountId(1L).build();
+        TradeOrder order1 = TradeOrder.builder().id(1L).memberId(1L).build();
+        TradeOrder order2 = TradeOrder.builder().id(2L).memberId(1L).build();
 
         // when
-        boolean result = order1.isSameAccount(order2.getAccountId());
+        boolean result = order1.isSameMember(order2.getMemberId());
 
         // then
         assertThat(result).isTrue();
@@ -88,11 +88,11 @@ class TradeOrderTest {
     @DisplayName("다른 계정으로부터의 주문일 경우 false를 반환한다.")
     void returnFalseWhenDifferentAccount() {
         // given
-        TradeOrder order1 = TradeOrder.builder().id(1L).accountId(1L).build();
-        TradeOrder order2 = TradeOrder.builder().id(2L).accountId(2L).build();
+        TradeOrder order1 = TradeOrder.builder().id(1L).memberId(1L).build();
+        TradeOrder order2 = TradeOrder.builder().id(2L).memberId(2L).build();
 
         // when
-        boolean result = order1.isSameAccount(order2.getAccountId());
+        boolean result = order1.isSameMember(order2.getMemberId());
 
         // then
         assertThat(result).isFalse();

@@ -11,22 +11,22 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class AccountRepositoryImpl implements AccountRepository {
 
-	private final AccountJpaRepository accountJpaRepository;
+    private final AccountJpaRepository accountJpaRepository;
 
-	@Override
-	public Account getById(final Long id) {
-		return accountJpaRepository.findById(id)
-				.orElseThrow(AccountNotFoundException::new);
-	}
+    @Override
+    public Account getById(final Long id) {
+        return accountJpaRepository.findById(id)
+                .orElseThrow(AccountNotFoundException::new);
+    }
 
-	@Override
-	public void save(final Account account) {
-		accountJpaRepository.save(account);
-	}
+    @Override
+    public void save(final Account account) {
+        accountJpaRepository.save(account);
+    }
 
-	@Override
-	public Account getByMemberId(Long memberId) {
-		return accountJpaRepository.findByMemberId(memberId)
-				.orElseThrow(AccountNotFoundException::new);
-	}
+    @Override
+    public Account getByMemberId(Long memberId) {
+        return accountJpaRepository.findByMemberId(memberId)
+                .orElseThrow(AccountNotFoundException::new);
+    }
 }

@@ -36,7 +36,7 @@ class PriceTest {
         // then
         assertThat(result).isFalse();
     }
-    
+
     @Test
     @DisplayName("같은 금액일 경우 true를 반환한다.")
     void equals() {

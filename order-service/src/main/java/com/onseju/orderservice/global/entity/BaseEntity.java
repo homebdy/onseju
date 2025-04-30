@@ -19,32 +19,32 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-public class BaseEntity{
+public class BaseEntity {
 
-	@CreatedDate
-	@Column(nullable = false, updatable = false)
-	private LocalDateTime createdDateTime;
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdDateTime;
 
-	@LastModifiedDate
-	@Column(nullable = false)
-	private LocalDateTime updatedDateTime;
+    @LastModifiedDate
+    @Column(nullable = false)
+    private LocalDateTime updatedDateTime;
 
-	@Builder.Default
-	private LocalDateTime deletedDateTime = null;
+    @Builder.Default
+    private LocalDateTime deletedDateTime = null;
 
-	public boolean isDeleted() {
-		return deletedDateTime != null;
-	}
+    public boolean isDeleted() {
+        return deletedDateTime != null;
+    }
 
-	public void softDelete(final LocalDateTime deletedDateTime) {
-		if (deletedDateTime == null) {
-			throw new IllegalArgumentException("deletedDateTime must not be `null`");
-		}
-		this.deletedDateTime = deletedDateTime;
-	}
+    public void softDelete(final LocalDateTime deletedDateTime) {
+        if (deletedDateTime == null) {
+            throw new IllegalArgumentException("deletedDateTime must not be `null`");
+        }
+        this.deletedDateTime = deletedDateTime;
+    }
 
-	public void restore() {
-		this.deletedDateTime = LocalDateTime.now();
-	}
+    public void restore() {
+        this.deletedDateTime = LocalDateTime.now();
+    }
 
 }

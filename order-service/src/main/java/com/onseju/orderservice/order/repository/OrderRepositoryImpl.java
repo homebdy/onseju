@@ -14,27 +14,27 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OrderRepositoryImpl implements OrderRepository {
 
-	private final OrderJpaRepository orderJpaRepository;
+    private final OrderJpaRepository orderJpaRepository;
 
-	@Override
-	public Order save(final Order order) {
-		return orderJpaRepository.save(order);
-	}
+    @Override
+    public Order save(final Order order) {
+        return orderJpaRepository.save(order);
+    }
 
-	@Override
-	public Optional<Order> findById(final Long id) {
-		return orderJpaRepository.findById(id);
-	}
+    @Override
+    public Optional<Order> findById(final Long id) {
+        return orderJpaRepository.findById(id);
+    }
 
-	@Override
-	public Order getById(Long id) {
-		return orderJpaRepository
-				.findById(id)
-				.orElseThrow(OrderNotFoundException::new);
-	}
+    @Override
+    public Order getById(Long id) {
+        return orderJpaRepository
+                .findById(id)
+                .orElseThrow(OrderNotFoundException::new);
+    }
 
-	@Override
-	public List<Order> findByMemberId(Long memberId) {
-		return orderJpaRepository.findByAccountId(memberId);
-	}
+    @Override
+    public List<Order> findByMemberId(Long memberId) {
+        return orderJpaRepository.findByMemberId(memberId);
+    }
 }

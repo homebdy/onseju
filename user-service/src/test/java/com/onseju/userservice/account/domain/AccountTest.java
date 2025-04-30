@@ -61,7 +61,7 @@ public class AccountTest {
         BigDecimal expectedBalance = new BigDecimal("70000000");
 
         // when
-        account.processOrder(Type.BUY, priceToBuy, quantityToBuy);
+        account.processOrder(Type.LIMIT_BUY, priceToBuy, quantityToBuy);
 
         // then
         assertThat(account.getBalance()).isEqualTo(expectedBalance);
@@ -76,7 +76,7 @@ public class AccountTest {
         BigDecimal expectedBalance = new BigDecimal("130000000");
 
         // when
-        account.processOrder(Type.SELL, priceToSell, quantityToSell);
+        account.processOrder(Type.LIMIT_SELL, priceToSell, quantityToSell);
 
         // then
         assertThat(account.getBalance()).isEqualTo(expectedBalance);

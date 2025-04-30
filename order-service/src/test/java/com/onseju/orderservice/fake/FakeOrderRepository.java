@@ -28,7 +28,7 @@ public class FakeOrderRepository implements OrderRepository {
                 .remainingQuantity(order.getRemainingQuantity())
                 .status(order.getStatus())
                 .price(order.getPrice())
-                .accountId(order.getAccountId())
+                .memberId(order.getMemberId())
                 .timestamp(order.getTimestamp())
                 .build();
         elements.add(saved);

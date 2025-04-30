@@ -6,8 +6,8 @@ import com.onseju.orderservice.global.security.UserDetailsServiceImpl;
 import com.onseju.orderservice.mock.WithMockUserDetails;
 import com.onseju.orderservice.order.controller.request.OrderRequest;
 import com.onseju.orderservice.order.domain.Type;
-import com.onseju.orderservice.order.dto.BeforeTradeOrderDto;
 import com.onseju.orderservice.order.service.OrderService;
+import com.onseju.orderservice.order.service.dto.OrderCreateCommand;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,36 +26,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(OrderController.class)
 class OrderControllerTest {
 
-	@Autowired
-	private MockMvc mockMvc;
+    @MockitoBean
+    UserDetailsServiceImpl userDetailsServiceImpl;
+    @Autowired
+    private MockMvc mockMvc;
+    @MockitoBean
+    private OrderService orderService;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @MockitoBean
+    private JwtUtil jwtUtil;
 
-	@MockitoBean
-	private OrderService orderService;
+    @Test
+    @DisplayName("주문 생성 테스트")
+    @WithMockUserDetails
+    void testReceived() throws Exception {
+        OrderRequest request = OrderRequest.builder()
+                .companyCode("AAPL")
+                .type(Type.LIMIT_BUY)
+                .totalQuantity(new BigDecimal("10"))
+                .price(new BigDecimal("150.00"))
+                .build();
 
-	@Autowired
-	private ObjectMapper objectMapper;
-
-	@MockitoBean
-	private JwtUtil jwtUtil;
-
-	@MockitoBean
-	UserDetailsServiceImpl userDetailsServiceImpl;
-
-	@Test
-	@DisplayName("주문 생성 테스트")
-	@WithMockUserDetails
-	void testReceived() throws Exception {
-		OrderRequest request = OrderRequest.builder()
-			.companyCode("AAPL")
-			.type(Type.LIMIT_BUY)
-			.totalQuantity(new BigDecimal("10"))
-			.price(new BigDecimal("150.00"))
-			.build();
-
-		mockMvc.perform(post("/api/order")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(request)))
-				.andExpect(status().isOk());
-		verify(orderService).placeOrder(any(BeforeTradeOrderDto.class));
-	}
+        mockMvc.perform(post("/api/order")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+        verify(orderService).placeOrder(any(OrderCreateCommand.class));
+    }
 }

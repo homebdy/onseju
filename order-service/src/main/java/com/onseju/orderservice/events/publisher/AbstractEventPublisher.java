@@ -1,15 +1,13 @@
 package com.onseju.orderservice.events.publisher;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
+import com.onseju.orderservice.events.exception.EventPublisherFailException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
-import com.onseju.orderservice.events.exception.EventPublisherFailException;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,10 +24,11 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
     }
 
     protected abstract void validateEvent(T event);
+
     protected abstract void doPublish(T event);
 
     protected void sendMessage(String exchange, String routingKey,
-            T event, String correlationId) {
+                               T event, String correlationId) {
         try {
             CorrelationData correlation = new CorrelationData(correlationId);
             rabbitTemplate.convertAndSend(exchange, routingKey, event, correlation);

@@ -1,5 +1,6 @@
 package com.onseju.orderservice.tradehistory.service;
 
+import com.onseju.orderservice.events.dto.MatchedEvent;
 import com.onseju.orderservice.fake.FakeOrderRepository;
 import com.onseju.orderservice.fake.FakeTradeHistoryRepository;
 import com.onseju.orderservice.tradehistory.domain.TradeHistory;
@@ -10,46 +11,50 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TradeHistoryServiceTest {
 
-	private FakeTradeHistoryRepository tradeHistoryRepository;
-	private TradeHistoryService tradeHistoryService;
-	TradeHistoryMapper tradeHistoryMapper;
-	FakeOrderRepository orderRepository;
-	@BeforeEach
-	void setUp() {
-		tradeHistoryRepository = new FakeTradeHistoryRepository();
-		tradeHistoryMapper = new TradeHistoryMapper();
-		orderRepository = new FakeOrderRepository();
-		tradeHistoryService = new TradeHistoryService(tradeHistoryRepository, orderRepository, tradeHistoryMapper);
-	}
+    private FakeTradeHistoryRepository tradeHistoryRepository;
+    private TradeHistoryService tradeHistoryService;
+    private TradeHistoryMapper tradeHistoryMapper;
+    private FakeOrderRepository orderRepository;
 
-	@Test
-	@DisplayName("체결 내역을 저장한다.")
-	void save() {
-		// given
-		TradeHistory tradeHistory = TradeHistory.builder()
-			.id(1L)
-			.companyCode("005930")
-			.sellOrderId(1L)
-			.buyOrderId(2L)
-			.price(new BigDecimal(100))
-			.quantity(new BigDecimal(100))
-			.tradeTime(Instant.now().getEpochSecond())
-			.build();
+    @BeforeEach
+    void setUp() {
+        tradeHistoryRepository = new FakeTradeHistoryRepository();
+        tradeHistoryMapper = new TradeHistoryMapper();
+        orderRepository = new FakeOrderRepository();
+        tradeHistoryService = new TradeHistoryService(tradeHistoryRepository, orderRepository, tradeHistoryMapper);
+    }
 
-		// when
-		tradeHistoryService.saveTradeHistory(tradeHistory);
+    @Test
+    @DisplayName("체결 내역을 저장한다.")
+    void save() {
+        // given
+        MatchedEvent matchedEvent = new MatchedEvent(
+                UUID.randomUUID(),
+                "005930",
+                1L,
+                1L,
+                2L,
+                2L,
+                new BigDecimal(10),
+                new BigDecimal(1000),
+                Instant.now().getEpochSecond()
+        );
 
-		// then
-		TradeHistory saved = tradeHistoryRepository.findById(1L).orElse(null);
-		assertThat(saved).isNotNull();
-		assertThat(saved.getCompanyCode()).isEqualTo(tradeHistory.getCompanyCode());
-		assertThat(saved.getSellOrderId()).isEqualTo(tradeHistory.getSellOrderId());
-		assertThat(saved.getBuyOrderId()).isEqualTo(tradeHistory.getBuyOrderId());
-		assertThat(saved.getTradeTime()).isEqualTo(tradeHistory.getTradeTime());
-	}
+        // when
+        TradeHistory saved = tradeHistoryService.save(matchedEvent);
+
+        // then
+        assertThat(saved).isNotNull();
+        assertThat(saved.getCompanyCode()).isEqualTo(matchedEvent.companyCode());
+        assertThat(saved.getQuantity()).isEqualTo(matchedEvent.quantity());
+        assertThat(saved.getBuyOrderId()).isEqualTo(matchedEvent.buyOrderId());
+        assertThat(saved.getSellOrderId()).isEqualTo(matchedEvent.sellOrderId());
+        assertThat(saved.getTradeTime()).isEqualTo(matchedEvent.tradeAt());
+    }
 }

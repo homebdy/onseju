@@ -7,11 +7,11 @@ import java.util.Optional;
 
 public interface OrderRepository {
 
-	Order save(final Order order);
+    Order save(final Order order);
 
-	Optional<Order> findById(final Long id);
+    Optional<Order> findById(final Long id);
 
-	Order getById(final Long id);
+    Order getById(final Long id);
 
-	List<Order> findByMemberId(Long memberId);
+    List<Order> findByMemberId(Long memberId);
 }

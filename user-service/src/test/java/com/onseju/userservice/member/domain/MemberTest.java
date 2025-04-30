@@ -34,7 +34,7 @@ class MemberTest {
                 .isEqualTo(new BigDecimal("100000000"));
     }
 
-	@Test
+    @Test
     @DisplayName("Create account with proper bidirectional relationship")
     void createAccountWithProperBidirectionalRelationship() {
         // given

@@ -54,7 +54,7 @@ google:
 chrome:
   extension:
     id: ${CHROME_EXTENSION_ID}
-    
+
 grpc:
   server:
     port: 9090

@@ -1,7 +1,7 @@
 package com.onseju.matchingservice.events.publisher;
 
 import com.onseju.matchingservice.config.RabbitMQConfig;
-import com.onseju.matchingservice.events.MatchedEvent;
+import com.onseju.matchingservice.events.dto.MatchedEvent;
 import com.onseju.matchingservice.events.exception.MatchingEventPublisherFailException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -18,17 +18,17 @@ public class MatchingEventPublisher extends AbstractEventPublisher<MatchedEvent>
         super(rabbitTemplate);
     }
 
-	@Override
+    @Override
     protected void validateEvent(MatchedEvent event) {
         if (event == null || event.id() == null) {
             throw new IllegalArgumentException("Invalid order event");
         }
     }
 
-	@Override
+    @Override
     protected void doPublish(MatchedEvent event) {
         try {
-            publishAfterMatchingEventToOrderSevice(event);
+            publishAfterMatchingEventToOrderService(event);
             log.info("체결 완료 이벤트 발행 완료. orderId: {}", event.id());
         } catch (Exception ex) {
             log.error("체결 완료 이벤트 발행 중 오류 발생. orderId: {}", event.id(), ex);
@@ -36,12 +36,12 @@ public class MatchingEventPublisher extends AbstractEventPublisher<MatchedEvent>
         }
     }
 
-	private void publishAfterMatchingEventToOrderSevice(MatchedEvent event){
-		sendMessage(
-			RabbitMQConfig.ONSEJU_MATCHING_EXCHANGE,
-			RabbitMQConfig.MATCHING_RESULT_KEY,
-			event,
-			"matchingResult - " + event.id()
-		);
-	}
+    private void publishAfterMatchingEventToOrderService(MatchedEvent event) {
+        sendMessage(
+                RabbitMQConfig.ONSEJU_MATCHING_EXCHANGE,
+                RabbitMQConfig.MATCHING_RESULT_KEY,
+                event,
+                "matchingResult - " + event.id()
+        );
+    }
 }

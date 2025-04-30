@@ -1,12 +1,12 @@
 package com.onseju.orderservice.chart.dto;
 
-import java.util.List;
-
 import lombok.Builder;
+
+import java.util.List;
 
 @Builder
 public record ChartResponseDto(
-		List<CandleDto> candles,
-		String timeCode
+        List<CandleDto> candles,
+        String timeCode
 ) {
 }

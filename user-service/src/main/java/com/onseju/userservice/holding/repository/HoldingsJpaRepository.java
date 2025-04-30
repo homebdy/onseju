@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface HoldingsJpaRepository extends JpaRepository<Holdings, Long> {
 
-	@Lock(LockModeType.OPTIMISTIC)
-	@Transactional
-	Optional<Holdings> findByAccountIdAndCompanyCode(final Long accountId, final String companyCode);
+    @Lock(LockModeType.OPTIMISTIC)
+    @Transactional
+    Optional<Holdings> findByMemberIdAndCompanyCode(final Long memberId, final String companyCode);
 }
