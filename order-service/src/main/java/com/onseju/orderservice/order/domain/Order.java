@@ -25,49 +25,49 @@ import java.math.BigDecimal;
 @Table(name = "orders")
 public class Order extends BaseEntity {
 
-	@Id
-	private Long id;
+    @Id
+    private Long id;
 
-	@Column(nullable = false)
-	private String companyCode;
+    @Column(nullable = false)
+    private String companyCode;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private Type type;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Type type;
 
-	@Column(nullable = false, precision = 10)
-	private BigDecimal totalQuantity;
+    @Column(nullable = false, precision = 10)
+    private BigDecimal totalQuantity;
 
-	@Column(nullable = false, precision = 10)
-	private BigDecimal remainingQuantity;
+    @Column(nullable = false, precision = 10)
+    private BigDecimal remainingQuantity;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private OrderStatus status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status;
 
-	@Column(nullable = false, precision = 10)
-	private BigDecimal price;
+    @Column(nullable = false, precision = 10)
+    private BigDecimal price;
 
-	@JoinColumn(nullable = false)
-	private Long memberId;
+    @JoinColumn(nullable = false)
+    private Long memberId;
 
-	@Column(nullable = false)
-	private Long timestamp;
+    @Column(nullable = false)
+    private Long timestamp;
 
 
-	// 체결 처리 (수량 감소 및 상태 업데이트)
-	public void decreaseRemainingQuantity(final BigDecimal quantity) {
-		if (quantity.compareTo(remainingQuantity) > 0) {
-			throw new ShortageOfRemainingQuantityException();
-		}
-		remainingQuantity = remainingQuantity.subtract(quantity);
-		changeStatusIfOrderComplete();
-	}
+    // 체결 처리 (수량 감소 및 상태 업데이트)
+    public void decreaseRemainingQuantity(final BigDecimal quantity) {
+        if (quantity.compareTo(remainingQuantity) > 0) {
+            throw new ShortageOfRemainingQuantityException();
+        }
+        remainingQuantity = remainingQuantity.subtract(quantity);
+        changeStatusIfOrderComplete();
+    }
 
-	private void changeStatusIfOrderComplete() {
-		if (remainingQuantity.compareTo(BigDecimal.ZERO) == 0) {
-			this.status = OrderStatus.COMPLETE;
-		}
+    private void changeStatusIfOrderComplete() {
+        if (remainingQuantity.compareTo(BigDecimal.ZERO) == 0) {
+            this.status = OrderStatus.COMPLETE;
+        }
 
-	}
+    }
 }

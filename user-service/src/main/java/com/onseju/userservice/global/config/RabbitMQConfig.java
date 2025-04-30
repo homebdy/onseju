@@ -1,10 +1,6 @@
 package com.onseju.userservice.global.config;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Declarable;
@@ -21,7 +17,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * RabbitMQ 메시지 브로커 설정
@@ -30,33 +29,33 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Configuration
 public class RabbitMQConfig {
-	/**
-	 * Exchange 정의
-	 * ONSEJU_EXCHANGE: 체결 엔진을 제외한 모든 서비스가 사용
-	 * ONSEJU_MATCHING_EXCHANGE: 체결 엔진<->주문 서비스 간 통신에 사용
-	 */
-	public static final String ONSEJU_EXCHANGE = "onseju.exchange";
-	public static final String DLX_EXCHANGE = "dlx.exchange";
+    /**
+     * Exchange 정의
+     * ONSEJU_EXCHANGE: 체결 엔진을 제외한 모든 서비스가 사용
+     * ONSEJU_MATCHING_EXCHANGE: 체결 엔진<->주문 서비스 간 통신에 사용
+     */
+    public static final String ONSEJU_EXCHANGE = "onseju.exchange";
+    public static final String DLX_EXCHANGE = "dlx.exchange";
 
-	// Queue 정의
-	public static final String ORDER_CREATED_QUEUE = "order.created.queue";
-	public static final String USER_UPDATE_QUEUE = "user.update.queue";
+    // Queue 정의
+    public static final String ORDER_CREATED_QUEUE = "order.created.queue";
+    public static final String USER_UPDATE_QUEUE = "user.update.queue";
     public static final String DLX_QUEUE = "dlx.queue";
 
-	// Routing Key 정의 - 주문 서비스
-	public static final String ORDER_CREATED_KEY = "order.created";
+    // Routing Key 정의 - 주문 서비스
+    public static final String ORDER_CREATED_KEY = "order.created";
     public static final String USER_UPDATE_KEY = "user.update";
     public static final String DLX_KEY = "dlx.key";
 
-	// Queue, Exchange 연결 설정
+    // Queue, Exchange 연결 설정
     private static final Map<String, String> QUEUE_CONFIG = Map.ofEntries(
-		Map.entry(ORDER_CREATED_QUEUE, ONSEJU_EXCHANGE + ":" + ORDER_CREATED_KEY),
-        Map.entry(USER_UPDATE_QUEUE, ONSEJU_EXCHANGE + ":" + USER_UPDATE_KEY)
+            Map.entry(ORDER_CREATED_QUEUE, ONSEJU_EXCHANGE + ":" + ORDER_CREATED_KEY),
+            Map.entry(USER_UPDATE_QUEUE, ONSEJU_EXCHANGE + ":" + USER_UPDATE_KEY)
     );
 
-	private static final long MESSAGE_TTL = 10000; // 10초
+    private static final long MESSAGE_TTL = 10000; // 10초
 
-	@Value("${spring.rabbitmq.host}")
+    @Value("${spring.rabbitmq.host}")
     private String host;
     @Value("${spring.rabbitmq.port}")
     private int port;
@@ -67,55 +66,55 @@ public class RabbitMQConfig {
 
     @Bean
     public Declarables rabbitMQBindings() {
-		List<Declarable> declarablesList = new ArrayList<>();
+        List<Declarable> declarablesList = new ArrayList<>();
 
-		// 1. DLX 설정을 먼저 생성 (다른 큐들이 참조할 수 있도록)
-		Queue dlxQueue = QueueBuilder
-			.durable(DLX_QUEUE)
-			.withArgument("x-message-ttl", 1000 * 60 * 60 * 24 * 7) // DLQ 보관 시간: 7일
-			.build();
-		DirectExchange dlxExchange = new DirectExchange(DLX_EXCHANGE);
-		Binding dlxBinding = BindingBuilder.bind(dlxQueue).to(dlxExchange).with(DLX_KEY);
+        // 1. DLX 설정을 먼저 생성 (다른 큐들이 참조할 수 있도록)
+        Queue dlxQueue = QueueBuilder
+                .durable(DLX_QUEUE)
+                .withArgument("x-message-ttl", 1000 * 60 * 60 * 24 * 7) // DLQ 보관 시간: 7일
+                .build();
+        DirectExchange dlxExchange = new DirectExchange(DLX_EXCHANGE);
+        Binding dlxBinding = BindingBuilder.bind(dlxQueue).to(dlxExchange).with(DLX_KEY);
 
-		declarablesList.add(dlxQueue);
-		declarablesList.add(dlxExchange);
-		declarablesList.add(dlxBinding);
+        declarablesList.add(dlxQueue);
+        declarablesList.add(dlxExchange);
+        declarablesList.add(dlxBinding);
 
-		// 2. 일반 큐 설정 (DLX 참조)
-		QUEUE_CONFIG.forEach((queueName, bindingInfo) -> {
-			String[] parts = bindingInfo.split(":");
-			String exchangeName = parts[0];
-			String routingKey = parts[1];
+        // 2. 일반 큐 설정 (DLX 참조)
+        QUEUE_CONFIG.forEach((queueName, bindingInfo) -> {
+            String[] parts = bindingInfo.split(":");
+            String exchangeName = parts[0];
+            String routingKey = parts[1];
 
-			// Dead Letter Exchange 설정 추가
-			Map<String, Object> args = new HashMap<>();
-			args.put("x-dead-letter-exchange", DLX_EXCHANGE); // 실패 시 메시지가 전달될 DLX
-			args.put("x-dead-letter-routing-key", DLX_KEY);   // DLX 내에서 사용할 라우팅 키
-			args.put("x-message-ttl", MESSAGE_TTL); // 메시지 타임아웃 설정
-			
-			Queue queue = QueueBuilder.durable(queueName).withArguments(args).build();
-			DirectExchange exchange = new DirectExchange(exchangeName);
-			Binding binding = BindingBuilder.bind(queue).to(exchange).with(routingKey);
+            // Dead Letter Exchange 설정 추가
+            Map<String, Object> args = new HashMap<>();
+            args.put("x-dead-letter-exchange", DLX_EXCHANGE); // 실패 시 메시지가 전달될 DLX
+            args.put("x-dead-letter-routing-key", DLX_KEY);   // DLX 내에서 사용할 라우팅 키
+            args.put("x-message-ttl", MESSAGE_TTL); // 메시지 타임아웃 설정
 
-			declarablesList.add(queue);
-			declarablesList.add(exchange);
-			declarablesList.add(binding);
-		});
+            Queue queue = QueueBuilder.durable(queueName).withArguments(args).build();
+            DirectExchange exchange = new DirectExchange(exchangeName);
+            Binding binding = BindingBuilder.bind(queue).to(exchange).with(routingKey);
 
-		return new Declarables(declarablesList);
-	}
-    
+            declarablesList.add(queue);
+            declarablesList.add(exchange);
+            declarablesList.add(binding);
+        });
 
-	// JSON 메시지 변환 설정
-	@Bean
-	public MessageConverter jsonMessageConverter() {
-		return new Jackson2JsonMessageConverter();
-	}
+        return new Declarables(declarablesList);
+    }
 
-	// RabbitTemplate 설정
-	@Bean
-	public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
-		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+
+    // JSON 메시지 변환 설정
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+
+    // RabbitTemplate 설정
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(jsonMessageConverter());
 
         // 메시지 전송 확인 콜백 추가
@@ -139,9 +138,9 @@ public class RabbitMQConfig {
         rabbitTemplate.setMandatory(true); // 라우팅 실패한 메시지 반환 활성화
 
         return rabbitTemplate;
-	}
+    }
 
-	@Bean
+    @Bean
     public ConnectionFactory connectionFactory() {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
         connectionFactory.setHost(host);

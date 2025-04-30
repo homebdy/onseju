@@ -8,16 +8,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class HoldingsMapper {
 
-	public CreatedOrderHoldingsUpdateDto toOrderCreatedHoldingsUpdateDto(
-			final CreatedOrderDto dto,
-			final Type type,
-			final Long memberId
-	) {
-		return new CreatedOrderHoldingsUpdateDto(
-				type,
-				memberId,
-				dto.companyCode(),
-				dto.totalQuantity()
-		);
-	}
+    public CreatedOrderHoldingsUpdateDto toOrderCreatedHoldingsUpdateDto(
+            final CreatedOrderDto dto,
+            final Type type,
+            final Long memberId
+    ) {
+        return new CreatedOrderHoldingsUpdateDto(
+                type,
+                memberId,
+                dto.companyCode(),
+                dto.totalQuantity()
+        );
+    }
 }

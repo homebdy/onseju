@@ -8,16 +8,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class AccountMapper {
 
-	public CreatedOrderAccountUpdateDto toCreatedOrderAccountUpdateDto(
-			final CreatedOrderDto dto,
-			final Type type,
-			Long memberId
-	) {
-		return new CreatedOrderAccountUpdateDto(
-				memberId,
-				type,
-				dto.price(),
-				dto.totalQuantity()
-		);
-	}
+    public CreatedOrderAccountUpdateDto toCreatedOrderAccountUpdateDto(
+            final CreatedOrderDto dto,
+            final Type type,
+            Long memberId
+    ) {
+        return new CreatedOrderAccountUpdateDto(
+                memberId,
+                type,
+                dto.price(),
+                dto.totalQuantity()
+        );
+    }
 }

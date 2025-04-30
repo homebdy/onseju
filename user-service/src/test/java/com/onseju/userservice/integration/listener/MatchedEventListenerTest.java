@@ -30,99 +30,92 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 class MatchedEventListenerTest {
 
-	@Autowired
-	private MatchedEventListener matchedEventListener;
+    private static MatchedEventListenerTest instance;
+    @Autowired
+    AccountMapper accountMapper;
+    @Autowired
+    HoldingsService holdingsService;
+    @Autowired
+    HoldingsMapper holdingsMapper;
+    @Autowired
+    private MatchedEventListener matchedEventListener;
+    @Autowired
+    private AccountService accountService;
+    @Autowired
+    private MemberRepository memberRepository;
+    @Autowired
+    private AccountRepository accountRepository;
 
-	@Autowired
-	private AccountService accountService;
+    @BeforeAll
+    static void setUp(@Autowired MemberRepository memberRepository) {
+        instance = new MatchedEventListenerTest();
+        instance.memberRepository = memberRepository;
 
-	@Autowired
-	AccountMapper accountMapper;
+        Member member = Member.builder()
+                .email("test@example.com")
+                .username("testuser")
+                .googleId("testuser")
+                .role(Role.USER)
+                .build();
+        member.createAccount();
+        instance.memberRepository.save(member);
 
-	@Autowired
-	HoldingsService holdingsService;
+        Member member2 = Member.builder()
+                .email("test2@example.com")
+                .username("testuser2")
+                .googleId("testuser2")
+                .role(Role.USER)
+                .build();
+        member2.createAccount();
+        instance.memberRepository.save(member2);
+    }
 
-	@Autowired
-	HoldingsMapper holdingsMapper;
+    @Test
+    @DisplayName("이벤트를 전달받아 비동기로 처리한다.")
+    void handleOrderEventShouldProcessOrder() {
+        // given
+        MatchedOrderUpdateEvent event = new MatchedOrderUpdateEvent(
+                UUID.randomUUID(),
+                Type.LIMIT_BUY,
+                "005930",
+                1L,
+                new BigDecimal(10),
+                new BigDecimal(1000),
+                Instant.now().getEpochSecond()
+        );
 
-	@Autowired
-	private MemberRepository memberRepository;
+        // when
+        CompletableFuture.runAsync(() -> matchedEventListener.handleOrderMatched(event))
 
-	@Autowired
-	private AccountRepository accountRepository;
+                .orTimeout(2, TimeUnit.SECONDS) // 비동기 실행을 기다림
+                .join();
 
-	private static MatchedEventListenerTest instance;
+        // then
+        Assertions.assertThatCode(() -> matchedEventListener.handleOrderMatched(event))
+                .doesNotThrowAnyException();
 
-	@BeforeAll
-	static void setUp(@Autowired MemberRepository memberRepository) {
-		instance = new MatchedEventListenerTest();
-		instance.memberRepository = memberRepository;
+    }
 
-		Member member = Member.builder()
-			.email("test@example.com")
-			.username("testuser")
-			.googleId("testuser")
-			.role(Role.USER)
-			.build();
-		member.createAccount();
-		instance.memberRepository.save(member);
+    @Test
+    @DisplayName("이벤트 내용을 Account에 반영한다.")
+    void updateAccounts() {
+        // given
+        MatchedOrderUpdateEvent event = new MatchedOrderUpdateEvent(
+                UUID.randomUUID(),
+                Type.LIMIT_BUY,
+                "005930",
+                1L,
+                new BigDecimal(10),
+                new BigDecimal(1000),
+                Instant.now().getEpochSecond()
+        );
 
-		Member member2 = Member.builder()
-			.email("test2@example.com")
-			.username("testuser2")
-			.googleId("testuser2")
-			.role(Role.USER)
-			.build();
-		member2.createAccount();
-		instance.memberRepository.save(member2);
-	}
+        // when
+        matchedEventListener.handleOrderMatched(event);
 
-	@Test
-	@DisplayName("이벤트를 전달받아 비동기로 처리한다.")
-	void handleOrderEventShouldProcessOrder() {
-		// given
-		MatchedOrderUpdateEvent event = new MatchedOrderUpdateEvent(
-				UUID.randomUUID(),
-				Type.LIMIT_BUY,
-				"005930",
-				1L,
-				new BigDecimal(10),
-				new BigDecimal(1000),
-				Instant.now().getEpochSecond()
-		);
+        // then
+        Account account = accountRepository.getById(1L);
 
-		// when
-		CompletableFuture.runAsync(() -> matchedEventListener.handleOrderMatched(event))
-
-				.orTimeout(2, TimeUnit.SECONDS) // 비동기 실행을 기다림
-				.join();
-
-		// then
-		Assertions.assertThatCode(() -> matchedEventListener.handleOrderMatched(event))
-				.doesNotThrowAnyException();
-
-	}
-
-	@Test
-	@DisplayName("이벤트 내용을 Account에 반영한다.")
-	void updateAccounts() {
-		// given
-		MatchedOrderUpdateEvent event = new MatchedOrderUpdateEvent(
-				UUID.randomUUID(),
-				Type.LIMIT_BUY,
-				"005930",
-				1L,
-				new BigDecimal(10),
-				new BigDecimal(1000),
-				Instant.now().getEpochSecond()
-		);
-
-		// when
-		matchedEventListener.handleOrderMatched(event);
-
-		// then
-		Account account = accountRepository.getById(1L);
-
-		assertThat(account.getBalance()).isEqualTo(new BigDecimal("100000000.00").subtract(event.price().multiply(event.quantity())));
-	}
+        assertThat(account.getBalance()).isEqualTo(new BigDecimal("100000000.00").subtract(event.price().multiply(event.quantity())));
+    }
 }

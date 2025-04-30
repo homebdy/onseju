@@ -13,34 +13,33 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserServiceClient {
 
-	@GrpcClient("order-service")
-	private OrderValidationServiceGrpc.OrderValidationServiceBlockingStub orderValidationServiceBlockingStub;
+    @GrpcClient("order-service")
+    private OrderValidationServiceGrpc.OrderValidationServiceBlockingStub orderValidationServiceBlockingStub;
 
-	public OrderValidationResponse validateOrder(OrderCreateCommand command) {
+    public OrderValidationResponse validateOrder(OrderCreateCommand command) {
 
-		try {
-			GrpcValidateRequest request = GrpcValidateRequest.newBuilder()
-				.setCompanyCode(command.companyCode())
-				.setType(command.type().name())
-				.setTotalQuantity(command.totalQuantity().toPlainString())
-				.setPrice(command.price().toPlainString())
-				.setUsername(command.username())
-				.build();
+        try {
+            GrpcValidateRequest request = GrpcValidateRequest.newBuilder()
+                    .setCompanyCode(command.companyCode())
+                    .setType(command.type().name())
+                    .setTotalQuantity(command.totalQuantity().toPlainString())
+                    .setPrice(command.price().toPlainString())
+                    .setUsername(command.username())
+                    .build();
 
-			GrpcValidateResponse response = orderValidationServiceBlockingStub.validateOrder(request);
+            GrpcValidateResponse response = orderValidationServiceBlockingStub.validateOrder(request);
 
-			// gRPC 응답을 ValidateResponse 객체로 변환
-			OrderValidationResponse validateResponse = OrderValidationResponse.builder()
-					.memberId(response.getMemberId())
-					.result(response.getResult())
-					.build();
+            // gRPC 응답을 ValidateResponse 객체로 변환
+            OrderValidationResponse validateResponse = OrderValidationResponse.builder()
+                    .memberId(response.getMemberId())
+                    .result(response.getResult())
+                    .build();
 
-			return validateResponse;
-		} catch (Exception e) {
-			throw new RuntimeException("gRPC 서비스 통신 오류", e);
-		}
-	}
-
+            return validateResponse;
+        } catch (Exception e) {
+            throw new RuntimeException("gRPC 서비스 통신 오류", e);
+        }
+    }
 
 
 }

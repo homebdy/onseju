@@ -17,15 +17,15 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class MatchedEventListener {
-	private final AccountService accountService;
-	private final HoldingsService holdingsService;
+    private final AccountService accountService;
+    private final HoldingsService holdingsService;
 
-	/**
-	 * 주문 매칭 이벤트 처리
-	 */
-	@RabbitListener(queues = RabbitMQConfig.USER_UPDATE_QUEUE)
-	public void handleOrderMatched(final MatchedOrderUpdateEvent event) {
-		accountService.updateAccountAfterTrade(event);
-		holdingsService.updateHoldingsAfterTrade(event);
-	}
+    /**
+     * 주문 매칭 이벤트 처리
+     */
+    @RabbitListener(queues = RabbitMQConfig.USER_UPDATE_QUEUE)
+    public void handleOrderMatched(final MatchedOrderUpdateEvent event) {
+        accountService.updateAccountAfterTrade(event);
+        holdingsService.updateHoldingsAfterTrade(event);
+    }
 }

@@ -17,11 +17,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CreatedOrderEventListener {
 
-	private final OrderService orderService;
+    private final OrderService orderService;
 
-	@RabbitListener(queues = RabbitMQConfig.ORDER_CREATED_QUEUE)
-	public void handleOrderCreated(final CreatedOrderEvent event) {
-		log.info("OrderCreatedEvent received: {}", event);
-		orderService.save(event);
-	}
+    @RabbitListener(queues = RabbitMQConfig.ORDER_CREATED_QUEUE)
+    public void handleOrderCreated(final CreatedOrderEvent event) {
+        log.info("OrderCreatedEvent received: {}", event);
+        orderService.save(event);
+    }
 }

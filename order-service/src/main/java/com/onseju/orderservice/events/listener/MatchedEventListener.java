@@ -23,38 +23,38 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MatchedEventListener {
 
-	private final TradeHistoryService tradeHistoryService;
-	private final OrderService orderService;
-	private final ChartService chartService;
-	//	private final TradeHistoryNotificationService tradeHistoryNotificationService;
-	private final EventMapper mapper;
-	private final SimpMessagingTemplate messagingTemplate;
+    private final TradeHistoryService tradeHistoryService;
+    private final OrderService orderService;
+    private final ChartService chartService;
+    //	private final TradeHistoryNotificationService tradeHistoryNotificationService;
+    private final EventMapper mapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
-	/**
-	 * 주문 매칭 이벤트 처리
-	 * 매칭 엔진에서 매칭이 발생하면 거래 내역 생성
-	 */
-	@RabbitListener(queues = RabbitMQConfig.MATCHING_RESULT_QUEUE)
-	public void handleOrderMatched(final MatchedEvent event) {
-		// 체결 내역 저장
-		TradeHistory tradeHistory = tradeHistoryService.save(event);
+    /**
+     * 주문 매칭 이벤트 처리
+     * 매칭 엔진에서 매칭이 발생하면 거래 내역 생성
+     */
+    @RabbitListener(queues = RabbitMQConfig.MATCHING_RESULT_QUEUE)
+    public void handleOrderMatched(final MatchedEvent event) {
+        // 체결 내역 저장
+        TradeHistory tradeHistory = tradeHistoryService.save(event);
 
-		// 메모리에 거래 내역 저장 및 차트 업데이트
-		chartService.processNewTrade(tradeHistory);
+        // 메모리에 거래 내역 저장 및 차트 업데이트
+        chartService.processNewTrade(tradeHistory);
 
-		// 주문 내역에서 남은 양 차감
-		orderService.updateRemainingQuantity(mapper.toMatchedOrderUpdateDto(event.buyOrderId(), event));
-		orderService.updateRemainingQuantity(mapper.toMatchedOrderUpdateDto(event.sellOrderId(), event));
+        // 주문 내역에서 남은 양 차감
+        orderService.updateRemainingQuantity(mapper.toMatchedOrderUpdateDto(event.buyOrderId(), event));
+        orderService.updateRemainingQuantity(mapper.toMatchedOrderUpdateDto(event.sellOrderId(), event));
 
-		// 사용자에게 체결 완료 알람 발송
+        // 사용자에게 체결 완료 알람 발송
 //		tradeHistoryNotificationService.sendNotification(event);
-	}
+    }
 
-	/**
-	 * 호가창 이벤트 처리
-	 */
-	@RabbitListener(queues = RabbitMQConfig.ORDER_BOOK_SYNCED_QUEUE)
-	public void handleOrderBookSynced(final OrderBookSyncedEvent event) {
-		messagingTemplate.convertAndSend("/topic/orderbook/" + event.companyCode(), event);
-	}
+    /**
+     * 호가창 이벤트 처리
+     */
+    @RabbitListener(queues = RabbitMQConfig.ORDER_BOOK_SYNCED_QUEUE)
+    public void handleOrderBookSynced(final OrderBookSyncedEvent event) {
+        messagingTemplate.convertAndSend("/topic/orderbook/" + event.companyCode(), event);
+    }
 }

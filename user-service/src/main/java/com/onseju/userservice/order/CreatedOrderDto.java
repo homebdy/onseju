@@ -8,12 +8,12 @@ import java.math.BigDecimal;
 
 @Builder
 public record CreatedOrderDto(
-		String companyCode,
-		Type type,
-		BigDecimal totalQuantity,
-		BigDecimal price,
-		Long timestamp,
-		String username
+        String companyCode,
+        Type type,
+        BigDecimal totalQuantity,
+        BigDecimal price,
+        Long timestamp,
+        String username
 ) {
 
 }

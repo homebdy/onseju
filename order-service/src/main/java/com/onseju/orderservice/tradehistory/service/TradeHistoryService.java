@@ -22,29 +22,29 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class TradeHistoryService {
 
-	private final TradeHistoryRepository tradeHistoryRepository;
-	private final OrderRepository orderRepository;
-	private final TradeHistoryMapper tradeHistoryMapper;
+    private final TradeHistoryRepository tradeHistoryRepository;
+    private final OrderRepository orderRepository;
+    private final TradeHistoryMapper tradeHistoryMapper;
 
-	/**
-	 * 거래 내역 저장
-	 */
-	@Transactional
-	public TradeHistory save(final MatchedEvent event) {
-		return tradeHistoryRepository.save(tradeHistoryMapper.toEntity(event));
-	}
+    /**
+     * 거래 내역 저장
+     */
+    @Transactional
+    public TradeHistory save(final MatchedEvent event) {
+        return tradeHistoryRepository.save(tradeHistoryMapper.toEntity(event));
+    }
 
-	@Transactional(readOnly = true)
-	public Collection<TradeHistoryResponse> getAllTradeHistory(Long memberId) {
-		List<Order> orders = orderRepository.findByMemberId(memberId);
-		return orders.stream()
-				.map(order ->
-						tradeHistoryRepository.findByOrderId(order).stream()
-								.map(tradeHistory -> tradeHistoryMapper.toResponse(tradeHistory, order))
-								.toList()
-				)
-				.flatMap(Collection::stream)
-				.filter(Objects::nonNull)
-				.toList();
-	}
+    @Transactional(readOnly = true)
+    public Collection<TradeHistoryResponse> getAllTradeHistory(Long memberId) {
+        List<Order> orders = orderRepository.findByMemberId(memberId);
+        return orders.stream()
+                .map(order ->
+                        tradeHistoryRepository.findByOrderId(order).stream()
+                                .map(tradeHistory -> tradeHistoryMapper.toResponse(tradeHistory, order))
+                                .toList()
+                )
+                .flatMap(Collection::stream)
+                .filter(Objects::nonNull)
+                .toList();
+    }
 }

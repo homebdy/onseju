@@ -11,60 +11,60 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class OrderTest {
 
-	@Test
-	@DisplayName("주문 생성 및 조회 테스트")
-	void testOrderCreationAndRetrieval() {
-		Long now = Instant.now().toEpochMilli();
-		Order order = Order.builder()
-				.companyCode("005930")
-				.type(Type.LIMIT_BUY)
-				.totalQuantity(new BigDecimal("100"))
-				.remainingQuantity(new BigDecimal("100"))
-				.status(OrderStatus.ACTIVE)
-				.price(new BigDecimal("50000"))
-				.timestamp(now)
-				.createdDateTime(LocalDateTime.now())
-				.updatedDateTime(LocalDateTime.now())
-				.memberId(1L)
-				.build();
+    @Test
+    @DisplayName("주문 생성 및 조회 테스트")
+    void testOrderCreationAndRetrieval() {
+        Long now = Instant.now().toEpochMilli();
+        Order order = Order.builder()
+                .companyCode("005930")
+                .type(Type.LIMIT_BUY)
+                .totalQuantity(new BigDecimal("100"))
+                .remainingQuantity(new BigDecimal("100"))
+                .status(OrderStatus.ACTIVE)
+                .price(new BigDecimal("50000"))
+                .timestamp(now)
+                .createdDateTime(LocalDateTime.now())
+                .updatedDateTime(LocalDateTime.now())
+                .memberId(1L)
+                .build();
 
-		assertThat(order).isNotNull();
-		assertThat(order.getCompanyCode()).isEqualTo("005930");
-		assertThat(order.getType()).isEqualTo(Type.LIMIT_BUY);
-		assertThat(order.getTotalQuantity()).isEqualByComparingTo(new BigDecimal("100"));
-	}
+        assertThat(order).isNotNull();
+        assertThat(order.getCompanyCode()).isEqualTo("005930");
+        assertThat(order.getType()).isEqualTo(Type.LIMIT_BUY);
+        assertThat(order.getTotalQuantity()).isEqualByComparingTo(new BigDecimal("100"));
+    }
 
-	@Test
-	@DisplayName("주문 수량 업데이트 테스트")
-	void testDecreaseRemainingQuantity() {
-		Order order = Order.builder()
-				.type(Type.LIMIT_BUY)
-				.totalQuantity(new BigDecimal("100"))
-				.remainingQuantity(new BigDecimal("100"))
-				.status(OrderStatus.ACTIVE)
-				.build();
+    @Test
+    @DisplayName("주문 수량 업데이트 테스트")
+    void testDecreaseRemainingQuantity() {
+        Order order = Order.builder()
+                .type(Type.LIMIT_BUY)
+                .totalQuantity(new BigDecimal("100"))
+                .remainingQuantity(new BigDecimal("100"))
+                .status(OrderStatus.ACTIVE)
+                .build();
 
-		order.decreaseRemainingQuantity(new BigDecimal("20"));
+        order.decreaseRemainingQuantity(new BigDecimal("20"));
 
-		assertThat(order.getRemainingQuantity()).isEqualByComparingTo(new BigDecimal("80"));
-	}
+        assertThat(order.getRemainingQuantity()).isEqualByComparingTo(new BigDecimal("80"));
+    }
 
-	@Test
-	@DisplayName("주문의 남은 수량이 0이 될 경우 Order Status를 Complete로 수정한다.")
-	void changeStatusComplete() {
-		// given
-		BigDecimal quantity = BigDecimal.valueOf(100);
-		Order order = Order.builder()
-				.type(Type.LIMIT_BUY)
-				.totalQuantity(quantity)
-				.remainingQuantity(quantity)
-				.status(OrderStatus.ACTIVE)
-				.build();
+    @Test
+    @DisplayName("주문의 남은 수량이 0이 될 경우 Order Status를 Complete로 수정한다.")
+    void changeStatusComplete() {
+        // given
+        BigDecimal quantity = BigDecimal.valueOf(100);
+        Order order = Order.builder()
+                .type(Type.LIMIT_BUY)
+                .totalQuantity(quantity)
+                .remainingQuantity(quantity)
+                .status(OrderStatus.ACTIVE)
+                .build();
 
-		// when
-		order.decreaseRemainingQuantity(quantity);
+        // when
+        order.decreaseRemainingQuantity(quantity);
 
-		// then
-		assertThat(order.getStatus()).isEqualTo(OrderStatus.COMPLETE);
-	}
+        // then
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.COMPLETE);
+    }
 }

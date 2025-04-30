@@ -16,86 +16,86 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class OrderMapperTest {
 
-	private final OrderMapper orderMapper = new OrderMapper();
+    private final OrderMapper orderMapper = new OrderMapper();
 
-	@Test
-	@DisplayName("OrderRequest를 Entity로 변환한다.")
-	void toEntity() {
-		// given
-		String companyCode = "005930";
-		OrderCreateCommand dto = new OrderCreateCommand(
-				"005930",
-				Type.LIMIT_BUY,
-				new BigDecimal(100),
-				new BigDecimal(1000),
-				"username");
+    @Test
+    @DisplayName("OrderRequest를 Entity로 변환한다.")
+    void toEntity() {
+        // given
+        String companyCode = "005930";
+        OrderCreateCommand dto = new OrderCreateCommand(
+                "005930",
+                Type.LIMIT_BUY,
+                new BigDecimal(100),
+                new BigDecimal(1000),
+                "username");
 
-		// when
-		Order order = orderMapper.toEntity(1L, dto, 1L);
+        // when
+        Order order = orderMapper.toEntity(1L, dto, 1L);
 
-		// then
-		assertThat(order).isNotNull();
-		assertThat(order.getCompanyCode()).isEqualTo(companyCode);
-	}
+        // then
+        assertThat(order).isNotNull();
+        assertThat(order.getCompanyCode()).isEqualTo(companyCode);
+    }
 
-	@Test
-	@DisplayName("OrderCreatedEvent를 Entity로 변환한다.")
-	void toEntityFromEvent() {
-		// given
-		CreatedOrderEvent createdOrderEvent = CreatedOrderEvent.builder()
-			.id(UUID.randomUUID())
-			.orderId(1L)
-			.companyCode("005930")
-			.type(Type.LIMIT_BUY)
-			.status(OrderStatus.ACTIVE)
-			.totalQuantity(new BigDecimal(100))
-			.remainingQuantity(new BigDecimal(100))
-			.price(new BigDecimal(50000))
-			.timestamp(Instant.now().toEpochMilli())
-			.memberId(1L)
-			.build();
+    @Test
+    @DisplayName("OrderCreatedEvent를 Entity로 변환한다.")
+    void toEntityFromEvent() {
+        // given
+        CreatedOrderEvent createdOrderEvent = CreatedOrderEvent.builder()
+                .id(UUID.randomUUID())
+                .orderId(1L)
+                .companyCode("005930")
+                .type(Type.LIMIT_BUY)
+                .status(OrderStatus.ACTIVE)
+                .totalQuantity(new BigDecimal(100))
+                .remainingQuantity(new BigDecimal(100))
+                .price(new BigDecimal(50000))
+                .timestamp(Instant.now().toEpochMilli())
+                .memberId(1L)
+                .build();
 
-		// when
-		Order order = orderMapper.toEntity(createdOrderEvent);
+        // when
+        Order order = orderMapper.toEntity(createdOrderEvent);
 
-		// then
-		assertThat(order).isNotNull();
-		assertThat(order.getId()).isEqualTo(createdOrderEvent.orderId());
-		assertThat(order.getCompanyCode()).isEqualTo(createdOrderEvent.companyCode());
-		assertThat(order.getType()).isEqualTo(createdOrderEvent.type());
-		assertThat(order.getStatus()).isEqualTo(createdOrderEvent.status());
-		assertThat(order.getTotalQuantity()).isEqualTo(createdOrderEvent.totalQuantity());
-		assertThat(order.getRemainingQuantity()).isEqualTo(createdOrderEvent.remainingQuantity());
-		assertThat(order.getPrice()).isEqualTo(createdOrderEvent.price());
-		assertThat(order.getTimestamp()).isEqualTo(createdOrderEvent.timestamp());
-	}
+        // then
+        assertThat(order).isNotNull();
+        assertThat(order.getId()).isEqualTo(createdOrderEvent.orderId());
+        assertThat(order.getCompanyCode()).isEqualTo(createdOrderEvent.companyCode());
+        assertThat(order.getType()).isEqualTo(createdOrderEvent.type());
+        assertThat(order.getStatus()).isEqualTo(createdOrderEvent.status());
+        assertThat(order.getTotalQuantity()).isEqualTo(createdOrderEvent.totalQuantity());
+        assertThat(order.getRemainingQuantity()).isEqualTo(createdOrderEvent.remainingQuantity());
+        assertThat(order.getPrice()).isEqualTo(createdOrderEvent.price());
+        assertThat(order.getTimestamp()).isEqualTo(createdOrderEvent.timestamp());
+    }
 
-	@Test
-	@DisplayName("Order Entity를 OrderCreatedEvent로 변환한다.")
-	void toEvent() {
-		// given
-		Order order = Order.builder()
-			.id(1L)
-			.companyCode("005930")
-			.type(Type.LIMIT_BUY)
-			.status(OrderStatus.ACTIVE)
-			.totalQuantity(new BigDecimal(100))
-			.remainingQuantity(new BigDecimal(100))
-			.price(new BigDecimal(50000))
-			.timestamp(Instant.now().toEpochMilli())
-			.memberId(1L)
-			.build();
+    @Test
+    @DisplayName("Order Entity를 OrderCreatedEvent로 변환한다.")
+    void toEvent() {
+        // given
+        Order order = Order.builder()
+                .id(1L)
+                .companyCode("005930")
+                .type(Type.LIMIT_BUY)
+                .status(OrderStatus.ACTIVE)
+                .totalQuantity(new BigDecimal(100))
+                .remainingQuantity(new BigDecimal(100))
+                .price(new BigDecimal(50000))
+                .timestamp(Instant.now().toEpochMilli())
+                .memberId(1L)
+                .build();
 
-		// when
-		CreatedOrderEvent createdOrderEvent = orderMapper.toCreatedOrderEvent(order);
+        // when
+        CreatedOrderEvent createdOrderEvent = orderMapper.toCreatedOrderEvent(order);
 
-		// then
-		assertThat(createdOrderEvent).isNotNull();
-		assertThat(createdOrderEvent.orderId()).isEqualTo(order.getId());
-		assertThat(createdOrderEvent.companyCode()).isEqualTo(order.getCompanyCode());
-		assertThat(createdOrderEvent.type()).isEqualTo(order.getType());
-		assertThat(createdOrderEvent.status()).isEqualTo(order.getStatus());
-		assertThat(createdOrderEvent.totalQuantity()).isEqualTo(order.getTotalQuantity());
-		assertThat(createdOrderEvent.remainingQuantity()).isEqualTo(order.getRemainingQuantity());
-	}
+        // then
+        assertThat(createdOrderEvent).isNotNull();
+        assertThat(createdOrderEvent.orderId()).isEqualTo(order.getId());
+        assertThat(createdOrderEvent.companyCode()).isEqualTo(order.getCompanyCode());
+        assertThat(createdOrderEvent.type()).isEqualTo(order.getType());
+        assertThat(createdOrderEvent.status()).isEqualTo(order.getStatus());
+        assertThat(createdOrderEvent.totalQuantity()).isEqualTo(order.getTotalQuantity());
+        assertThat(createdOrderEvent.remainingQuantity()).isEqualTo(order.getRemainingQuantity());
+    }
 }

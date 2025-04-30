@@ -19,25 +19,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OrderController {
 
-	private final OrderService orderService;
+    private final OrderService orderService;
 
-	@PostMapping
-	public ApiResponse<OrderResponse> received(
-			@RequestBody final OrderRequest request,
-			@AuthenticationPrincipal final UserDetailsImpl user
-	) {
-		return new ApiResponse<>(
-				"주문 접수 성공",
-				orderService.placeOrder(
-						new OrderCreateCommand(
-								request.companyCode(),
-								request.type(),
-								request.totalQuantity(),
-								request.price(),
-								user.getUsername()
-						)
-				),
-				HttpStatus.OK.value()
-		);
-	}
+    @PostMapping
+    public ApiResponse<OrderResponse> received(
+            @RequestBody final OrderRequest request,
+            @AuthenticationPrincipal final UserDetailsImpl user
+    ) {
+        return new ApiResponse<>(
+                "주문 접수 성공",
+                orderService.placeOrder(
+                        new OrderCreateCommand(
+                                request.companyCode(),
+                                request.type(),
+                                request.totalQuantity(),
+                                request.price(),
+                                user.getUsername()
+                        )
+                ),
+                HttpStatus.OK.value()
+        );
+    }
 }

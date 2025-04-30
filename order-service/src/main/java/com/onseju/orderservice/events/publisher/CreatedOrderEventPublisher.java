@@ -35,19 +35,19 @@ public class CreatedOrderEventPublisher extends AbstractEventPublisher<CreatedOr
 
     private void publishOrderCreatedEventToOrderService(CreatedOrderEvent event) {
         sendMessage(
-            RabbitMQConfig.ONSEJU_EXCHANGE,
-            RabbitMQConfig.ORDER_CREATED_KEY,
-            event,
-            "order-" + event.id()
+                RabbitMQConfig.ONSEJU_EXCHANGE,
+                RabbitMQConfig.ORDER_CREATED_KEY,
+                event,
+                "order-" + event.id()
         );
     }
 
     private void publishOrderCreatedEventToMatchingEngine(CreatedOrderEvent event) {
         sendMessage(
-            RabbitMQConfig.ONSEJU_MATCHING_EXCHANGE,
-            RabbitMQConfig.MATCHING_REQUEST_KEY,
-            event,
-            "matching-" + event.id()
+                RabbitMQConfig.ONSEJU_MATCHING_EXCHANGE,
+                RabbitMQConfig.MATCHING_REQUEST_KEY,
+                event,
+                "matching-" + event.id()
         );
     }
 }

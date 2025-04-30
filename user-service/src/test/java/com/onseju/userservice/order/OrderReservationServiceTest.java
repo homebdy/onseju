@@ -34,86 +34,86 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class OrderReservationServiceTest {
 
-	@Mock
-	private AccountService accountService;
+    @Mock
+    private AccountService accountService;
 
-	@Mock
-	private AccountMapper accountMapper;
+    @Mock
+    private AccountMapper accountMapper;
 
-	@Mock
-	private HoldingsService holdingsService;
+    @Mock
+    private HoldingsService holdingsService;
 
-	@Mock
-	private HoldingsMapper holdingsMapper;
+    @Mock
+    private HoldingsMapper holdingsMapper;
 
-	@Mock
-	private MemberRepository memberRepository;
+    @Mock
+    private MemberRepository memberRepository;
 
-	@InjectMocks
-	private OrderReservationService orderReservationService;
+    @InjectMocks
+    private OrderReservationService orderReservationService;
 
-	@Test
-	void validateOrder_Success() {
-		// Given
-		GrpcValidateRequest request = GrpcValidateRequest.newBuilder()
-			.setCompanyCode("AAPL")
-			.setType("LIMIT_BUY")
-			.setTotalQuantity("10")
-			.setPrice("150.5")
-			.setUsername("username")
-			.build();
+    @Test
+    void validateOrder_Success() {
+        // Given
+        GrpcValidateRequest request = GrpcValidateRequest.newBuilder()
+                .setCompanyCode("AAPL")
+                .setType("LIMIT_BUY")
+                .setTotalQuantity("10")
+                .setPrice("150.5")
+                .setUsername("username")
+                .build();
 
-		when(memberRepository.findByUsername(any())).thenReturn(Member.builder().id(1L).username("username").build());
-		CreatedOrderDto dto = new CreatedOrderDto("AAPL", Type.LIMIT_BUY,
-			new BigDecimal("10"), new BigDecimal("150.5"), 123L,"username");
+        when(memberRepository.findByUsername(any())).thenReturn(Member.builder().id(1L).username("username").build());
+        CreatedOrderDto dto = new CreatedOrderDto("AAPL", Type.LIMIT_BUY,
+                new BigDecimal("10"), new BigDecimal("150.5"), 123L, "username");
 
-		CreatedOrderAccountUpdateDto accountDto = new CreatedOrderAccountUpdateDto(1L, Type.LIMIT_BUY, BigDecimal.ONE, BigDecimal.ONE);
-		CreatedOrderHoldingsUpdateDto holdingsDto = new CreatedOrderHoldingsUpdateDto(Type.LIMIT_SELL, 1L, "005930", BigDecimal.ONE);
+        CreatedOrderAccountUpdateDto accountDto = new CreatedOrderAccountUpdateDto(1L, Type.LIMIT_BUY, BigDecimal.ONE, BigDecimal.ONE);
+        CreatedOrderHoldingsUpdateDto holdingsDto = new CreatedOrderHoldingsUpdateDto(Type.LIMIT_SELL, 1L, "005930", BigDecimal.ONE);
 
-		when(accountMapper.toCreatedOrderAccountUpdateDto(any(), any(), any())).thenReturn(accountDto);
-		when(holdingsMapper.toOrderCreatedHoldingsUpdateDto(any(), any(), any())).thenReturn(holdingsDto);
+        when(accountMapper.toCreatedOrderAccountUpdateDto(any(), any(), any())).thenReturn(accountDto);
+        when(holdingsMapper.toOrderCreatedHoldingsUpdateDto(any(), any(), any())).thenReturn(holdingsDto);
 
-		StreamObserver<GrpcValidateResponse> responseObserver = mock(StreamObserver.class);
+        StreamObserver<GrpcValidateResponse> responseObserver = mock(StreamObserver.class);
 
-		// When
-		orderReservationService.validateOrder(request, responseObserver);
+        // When
+        orderReservationService.validateOrder(request, responseObserver);
 
-		// Then
-		ArgumentCaptor<GrpcValidateResponse> responseCaptor = ArgumentCaptor.forClass(GrpcValidateResponse.class);
-		verify(responseObserver).onNext(responseCaptor.capture());
-		verify(responseObserver).onCompleted();
+        // Then
+        ArgumentCaptor<GrpcValidateResponse> responseCaptor = ArgumentCaptor.forClass(GrpcValidateResponse.class);
+        verify(responseObserver).onNext(responseCaptor.capture());
+        verify(responseObserver).onCompleted();
 
-		GrpcValidateResponse response = responseCaptor.getValue();
-		assertEquals(1L, response.getMemberId());
-		assertTrue(response.getResult());
-	}
+        GrpcValidateResponse response = responseCaptor.getValue();
+        assertEquals(1L, response.getMemberId());
+        assertTrue(response.getResult());
+    }
 
-	@Test
-	void validateOrder_InsufficientBalance() {
-		// Given
-		GrpcValidateRequest request = GrpcValidateRequest.newBuilder()
-			.setCompanyCode("AAPL")
-			.setType("LIMIT_BUY")
-			.setTotalQuantity("10")
-			.setPrice("150.5")
-			.setUsername("username")
-			.build();
-		when(memberRepository.findByUsername(any())).thenReturn(Member.builder().id(1L).username("username").build());
-		doThrow(new InsufficientBalanceException()).when(accountService).reserve(any());
+    @Test
+    void validateOrder_InsufficientBalance() {
+        // Given
+        GrpcValidateRequest request = GrpcValidateRequest.newBuilder()
+                .setCompanyCode("AAPL")
+                .setType("LIMIT_BUY")
+                .setTotalQuantity("10")
+                .setPrice("150.5")
+                .setUsername("username")
+                .build();
+        when(memberRepository.findByUsername(any())).thenReturn(Member.builder().id(1L).username("username").build());
+        doThrow(new InsufficientBalanceException()).when(accountService).reserve(any());
 
-		StreamObserver<GrpcValidateResponse> responseObserver = mock(StreamObserver.class);
+        StreamObserver<GrpcValidateResponse> responseObserver = mock(StreamObserver.class);
 
-		// When
-		orderReservationService.validateOrder(request, responseObserver);
+        // When
+        orderReservationService.validateOrder(request, responseObserver);
 
-		// Then
-		ArgumentCaptor<GrpcValidateResponse> responseCaptor = ArgumentCaptor.forClass(GrpcValidateResponse.class);
-		verify(responseObserver).onNext(responseCaptor.capture());
-		verify(responseObserver).onCompleted();
+        // Then
+        ArgumentCaptor<GrpcValidateResponse> responseCaptor = ArgumentCaptor.forClass(GrpcValidateResponse.class);
+        verify(responseObserver).onNext(responseCaptor.capture());
+        verify(responseObserver).onCompleted();
 
-		GrpcValidateResponse response = responseCaptor.getValue();
-		assertFalse(response.getResult());
-		assertEquals("잔액이 부족합니다", response.getMessage());
-	}
+        GrpcValidateResponse response = responseCaptor.getValue();
+        assertFalse(response.getResult());
+        assertEquals("잔액이 부족합니다", response.getMessage());
+    }
 }
 

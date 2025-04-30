@@ -30,150 +30,151 @@ import static org.mockito.Mockito.verify;
 
 class UserServiceClientTest {
 
-	private final GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
+    private final GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
 
-	private OrderValidationServiceGrpc.OrderValidationServiceImplBase serviceImpl =
-		mock(OrderValidationServiceGrpc.OrderValidationServiceImplBase.class);
+    private OrderValidationServiceGrpc.OrderValidationServiceImplBase serviceImpl =
+            mock(OrderValidationServiceGrpc.OrderValidationServiceImplBase.class);
 
-	private UserServiceClient userServiceClient;
+    private UserServiceClient userServiceClient;
 
-	@BeforeEach
-	void setUp() throws IOException {
-		// spy 생성
-		serviceImpl = spy(new OrderValidationServiceGrpc.OrderValidationServiceImplBase() {});
+    @BeforeEach
+    void setUp() throws IOException {
+        // spy 생성
+        serviceImpl = spy(new OrderValidationServiceGrpc.OrderValidationServiceImplBase() {
+        });
 
-		// 고유한 서버 이름 생성
-		String serverName = InProcessServerBuilder.generateName();
+        // 고유한 서버 이름 생성
+        String serverName = InProcessServerBuilder.generateName();
 
-		// InProcess 서버 등록 및 시작
-		grpcCleanup.register(
-			InProcessServerBuilder.forName(serverName)
-				.directExecutor()
-				.addService(serviceImpl)  // Add the spy service implementation
-				.build()
-				.start());
+        // InProcess 서버 등록 및 시작
+        grpcCleanup.register(
+                InProcessServerBuilder.forName(serverName)
+                        .directExecutor()
+                        .addService(serviceImpl)  // Add the spy service implementation
+                        .build()
+                        .start());
 
-		// InProcess 채널 생성
-		OrderValidationServiceGrpc.OrderValidationServiceBlockingStub blockingStub =
-			OrderValidationServiceGrpc.newBlockingStub(
-				grpcCleanup.register(
-					InProcessChannelBuilder.forName(serverName)
-						.directExecutor()
-						.build()));
+        // InProcess 채널 생성
+        OrderValidationServiceGrpc.OrderValidationServiceBlockingStub blockingStub =
+                OrderValidationServiceGrpc.newBlockingStub(
+                        grpcCleanup.register(
+                                InProcessChannelBuilder.forName(serverName)
+                                        .directExecutor()
+                                        .build()));
 
-		// 테스트 대상 클라이언트 생성
-		userServiceClient = new UserServiceClient(blockingStub);
-	}
+        // 테스트 대상 클라이언트 생성
+        userServiceClient = new UserServiceClient(blockingStub);
+    }
 
 
-	@Test
-	void validateOrder_Success() {
-		// Given
-		OrderCreateCommand dto = new OrderCreateCommand(
-				"005930",
-				Type.LIMIT_BUY,
-				new BigDecimal(10),
-				new BigDecimal(1000),
-				"username"
-		);
+    @Test
+    void validateOrder_Success() {
+        // Given
+        OrderCreateCommand dto = new OrderCreateCommand(
+                "005930",
+                Type.LIMIT_BUY,
+                new BigDecimal(10),
+                new BigDecimal(1000),
+                "username"
+        );
 
-		// Mock 서비스 구현 설정
-		doAnswer(invocation -> {
-			StreamObserver<GrpcValidateResponse> responseObserver =
-				(StreamObserver<GrpcValidateResponse>) invocation.getArguments()[1];
+        // Mock 서비스 구현 설정
+        doAnswer(invocation -> {
+            StreamObserver<GrpcValidateResponse> responseObserver =
+                    (StreamObserver<GrpcValidateResponse>) invocation.getArguments()[1];
 
-			GrpcValidateResponse response = GrpcValidateResponse.newBuilder()
-				.setMemberId(1L)
-				.setResult(true)
-				.setMessage("검증 성공")
-				.build();
+            GrpcValidateResponse response = GrpcValidateResponse.newBuilder()
+                    .setMemberId(1L)
+                    .setResult(true)
+                    .setMessage("검증 성공")
+                    .build();
 
-			responseObserver.onNext(response);
-			responseObserver.onCompleted();
-			return null;
-		}).when(serviceImpl).validateOrder(any(GrpcValidateRequest.class), any(StreamObserver.class));
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+            return null;
+        }).when(serviceImpl).validateOrder(any(GrpcValidateRequest.class), any(StreamObserver.class));
 
-		// When
-		OrderValidationResponse response = userServiceClient.validateOrder(dto);
+        // When
+        OrderValidationResponse response = userServiceClient.validateOrder(dto);
 
-		// Then
-		assertNotNull(response);
-		assertEquals(1L, response.memberId());
-		assertTrue(response.result());
+        // Then
+        assertNotNull(response);
+        assertEquals(1L, response.memberId());
+        assertTrue(response.result());
 
-		// 요청 검증
-		ArgumentCaptor<GrpcValidateRequest> requestCaptor =
-			ArgumentCaptor.forClass(GrpcValidateRequest.class);
-		verify(serviceImpl).validateOrder(requestCaptor.capture(), any(StreamObserver.class));
+        // 요청 검증
+        ArgumentCaptor<GrpcValidateRequest> requestCaptor =
+                ArgumentCaptor.forClass(GrpcValidateRequest.class);
+        verify(serviceImpl).validateOrder(requestCaptor.capture(), any(StreamObserver.class));
 
-		GrpcValidateRequest capturedRequest = requestCaptor.getValue();
-		assertEquals(dto.companyCode(), capturedRequest.getCompanyCode());
-		assertEquals(dto.type().name(), capturedRequest.getType());
-		assertEquals(dto.totalQuantity().toString(), capturedRequest.getTotalQuantity());
-		assertEquals(dto.price().toString(), capturedRequest.getPrice());
-		assertEquals(dto.username(), capturedRequest.getUsername());
-	}
+        GrpcValidateRequest capturedRequest = requestCaptor.getValue();
+        assertEquals(dto.companyCode(), capturedRequest.getCompanyCode());
+        assertEquals(dto.type().name(), capturedRequest.getType());
+        assertEquals(dto.totalQuantity().toString(), capturedRequest.getTotalQuantity());
+        assertEquals(dto.price().toString(), capturedRequest.getPrice());
+        assertEquals(dto.username(), capturedRequest.getUsername());
+    }
 
-	@Test
-	void validateOrder_Failure() {
-		// Given
-		OrderCreateCommand dto = new OrderCreateCommand(
-				"005930",
-				Type.LIMIT_BUY,
-				new BigDecimal(10),
-				new BigDecimal(1000),
-				"username"
-		);
+    @Test
+    void validateOrder_Failure() {
+        // Given
+        OrderCreateCommand dto = new OrderCreateCommand(
+                "005930",
+                Type.LIMIT_BUY,
+                new BigDecimal(10),
+                new BigDecimal(1000),
+                "username"
+        );
 
-		// Mock 서비스 구현 설정 - 실패 응답
-		doAnswer(invocation -> {
-			StreamObserver<GrpcValidateResponse> responseObserver =
-				(StreamObserver<GrpcValidateResponse>) invocation.getArguments()[1];
+        // Mock 서비스 구현 설정 - 실패 응답
+        doAnswer(invocation -> {
+            StreamObserver<GrpcValidateResponse> responseObserver =
+                    (StreamObserver<GrpcValidateResponse>) invocation.getArguments()[1];
 
-			GrpcValidateResponse response = GrpcValidateResponse.newBuilder()
-				.setMemberId(0L)
-				.setResult(false)
-				.setMessage("잔액 부족")
-				.build();
+            GrpcValidateResponse response = GrpcValidateResponse.newBuilder()
+                    .setMemberId(0L)
+                    .setResult(false)
+                    .setMessage("잔액 부족")
+                    .build();
 
-			responseObserver.onNext(response);
-			responseObserver.onCompleted();
-			return null;
-		}).when(serviceImpl).validateOrder(any(GrpcValidateRequest.class), any(StreamObserver.class));
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+            return null;
+        }).when(serviceImpl).validateOrder(any(GrpcValidateRequest.class), any(StreamObserver.class));
 
-		// When
-		OrderValidationResponse response = userServiceClient.validateOrder(dto);
+        // When
+        OrderValidationResponse response = userServiceClient.validateOrder(dto);
 
-		// Then
-		assertNotNull(response);
-		assertEquals(0L, response.memberId());
-		assertFalse(response.result());
-	}
+        // Then
+        assertNotNull(response);
+        assertEquals(0L, response.memberId());
+        assertFalse(response.result());
+    }
 
-	@Test
-	void validateOrder_Exception() {
-		// Given
-		OrderCreateCommand dto = new OrderCreateCommand(
-				"005930",
-				Type.LIMIT_BUY,
-				new BigDecimal(10),
-				new BigDecimal(1000),
-				"username"
-		);
+    @Test
+    void validateOrder_Exception() {
+        // Given
+        OrderCreateCommand dto = new OrderCreateCommand(
+                "005930",
+                Type.LIMIT_BUY,
+                new BigDecimal(10),
+                new BigDecimal(1000),
+                "username"
+        );
 
-		// Mock 서비스 구현 설정 - 예외 발생
-		doAnswer(invocation -> {
-			StreamObserver<GrpcValidateResponse> responseObserver =
-				(StreamObserver<GrpcValidateResponse>) invocation.getArguments()[1];
-			responseObserver.onError(new RuntimeException("서비스 내부 오류"));
-			return null;
-		}).when(serviceImpl).validateOrder(any(GrpcValidateRequest.class), any(StreamObserver.class));
+        // Mock 서비스 구현 설정 - 예외 발생
+        doAnswer(invocation -> {
+            StreamObserver<GrpcValidateResponse> responseObserver =
+                    (StreamObserver<GrpcValidateResponse>) invocation.getArguments()[1];
+            responseObserver.onError(new RuntimeException("서비스 내부 오류"));
+            return null;
+        }).when(serviceImpl).validateOrder(any(GrpcValidateRequest.class), any(StreamObserver.class));
 
-		// When & Then
-		RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-			userServiceClient.validateOrder(dto);
-		});
+        // When & Then
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            userServiceClient.validateOrder(dto);
+        });
 
-		assertEquals("gRPC 서비스 통신 오류", exception.getMessage());
-	}
+        assertEquals("gRPC 서비스 통신 오류", exception.getMessage());
+    }
 }

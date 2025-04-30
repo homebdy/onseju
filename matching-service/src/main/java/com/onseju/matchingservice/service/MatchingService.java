@@ -2,8 +2,8 @@ package com.onseju.matchingservice.service;
 
 import com.onseju.matchingservice.domain.TradeOrder;
 import com.onseju.matchingservice.engine.MatchingEngine;
-import com.onseju.matchingservice.events.dto.MatchedEvent;
 import com.onseju.matchingservice.events.dto.CreatedOrderEvent;
+import com.onseju.matchingservice.events.dto.MatchedEvent;
 import com.onseju.matchingservice.events.publisher.EventPublisher;
 import com.onseju.matchingservice.mapper.MatchingMapper;
 import lombok.RequiredArgsConstructor;

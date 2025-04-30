@@ -13,21 +13,21 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemberRepositoryImpl implements MemberRepository {
 
-	private final MemberJpaRepository memberJpaRepository;
+    private final MemberJpaRepository memberJpaRepository;
 
-	@Override
-	public Optional<Member> findByEmail(final String email) {
-		return memberJpaRepository.findByEmail(email);
-	}
+    @Override
+    public Optional<Member> findByEmail(final String email) {
+        return memberJpaRepository.findByEmail(email);
+    }
 
-	@Override
-	public Member save(final Member member) {
-		return memberJpaRepository.save(member);
-	}
+    @Override
+    public Member save(final Member member) {
+        return memberJpaRepository.save(member);
+    }
 
-	@Override
-	public Member findByUsername(String username) {
-		return memberJpaRepository.findByUsername(username)
-				.orElseThrow(MemberNotFoundException::new);
-	}
+    @Override
+    public Member findByUsername(String username) {
+        return memberJpaRepository.findByUsername(username)
+                .orElseThrow(MemberNotFoundException::new);
+    }
 }

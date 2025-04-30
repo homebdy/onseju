@@ -9,15 +9,15 @@ import java.util.UUID;
 
 @Builder
 public record CreatedOrderEvent(
-		UUID id,
-		Long orderId,
-		String companyCode,
-		Type type,
-		OrderStatus status,
-		BigDecimal totalQuantity,
-		BigDecimal remainingQuantity,
-		BigDecimal price,
-		Long timestamp,
-		Long memberId
+        UUID id,
+        Long orderId,
+        String companyCode,
+        Type type,
+        OrderStatus status,
+        BigDecimal totalQuantity,
+        BigDecimal remainingQuantity,
+        BigDecimal price,
+        Long timestamp,
+        Long memberId
 ) {
 }

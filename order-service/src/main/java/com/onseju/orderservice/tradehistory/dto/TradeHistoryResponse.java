@@ -8,11 +8,11 @@ import java.time.LocalDateTime;
 
 @Builder
 public record TradeHistoryResponse(
-		Long orderId,
-		String companyCode,
-		Type type,
-		BigDecimal price,
-		BigDecimal quantity,
-		LocalDateTime createdAt
+        Long orderId,
+        String companyCode,
+        Type type,
+        BigDecimal price,
+        BigDecimal quantity,
+        LocalDateTime createdAt
 ) {
 }

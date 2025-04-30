@@ -1,5 +1,11 @@
 package com.onseju.orderservice.global.utils;
 
+import com.github.f4b6a3.tsid.TsidFactory;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import java.security.SecureRandom;
 import java.time.Clock;
 import java.util.ArrayList;
@@ -7,21 +13,12 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import com.github.f4b6a3.tsid.TsidFactory;
-
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Component
 public class TsidGenerator {
 
-    private TsidFactory tsidFactory;
     private final Queue<Long> idPool = new ConcurrentLinkedQueue<>();
-
+    private TsidFactory tsidFactory;
     @Value("${tsid.node-id:1}")
     private int nodeId;
 
@@ -46,8 +43,8 @@ public class TsidGenerator {
 
     private void initializeTsidFactory() {
         TsidFactory.Builder builder = TsidFactory.builder()
-            .withNode(nodeId)
-            .withClock(Clock.systemUTC());
+                .withNode(nodeId)
+                .withClock(Clock.systemUTC());
 
         if (useSecureRandom) {
             builder.withRandom(new SecureRandom());

@@ -4,9 +4,9 @@ import com.onseju.userservice.account.domain.Account;
 
 public interface AccountRepository {
 
-	Account getById(final Long id);
+    Account getById(final Long id);
 
-	void save(final Account account);
+    void save(final Account account);
 
-	Account getByMemberId(final Long memberId);
+    Account getByMemberId(final Long memberId);
 }

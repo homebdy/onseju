@@ -26,36 +26,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(OrderController.class)
 class OrderControllerTest {
 
-	@Autowired
-	private MockMvc mockMvc;
+    @MockitoBean
+    UserDetailsServiceImpl userDetailsServiceImpl;
+    @Autowired
+    private MockMvc mockMvc;
+    @MockitoBean
+    private OrderService orderService;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @MockitoBean
+    private JwtUtil jwtUtil;
 
-	@MockitoBean
-	private OrderService orderService;
+    @Test
+    @DisplayName("주문 생성 테스트")
+    @WithMockUserDetails
+    void testReceived() throws Exception {
+        OrderRequest request = OrderRequest.builder()
+                .companyCode("AAPL")
+                .type(Type.LIMIT_BUY)
+                .totalQuantity(new BigDecimal("10"))
+                .price(new BigDecimal("150.00"))
+                .build();
 
-	@Autowired
-	private ObjectMapper objectMapper;
-
-	@MockitoBean
-	private JwtUtil jwtUtil;
-
-	@MockitoBean
-	UserDetailsServiceImpl userDetailsServiceImpl;
-
-	@Test
-	@DisplayName("주문 생성 테스트")
-	@WithMockUserDetails
-	void testReceived() throws Exception {
-		OrderRequest request = OrderRequest.builder()
-			.companyCode("AAPL")
-			.type(Type.LIMIT_BUY)
-			.totalQuantity(new BigDecimal("10"))
-			.price(new BigDecimal("150.00"))
-			.build();
-
-		mockMvc.perform(post("/api/order")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(request)))
-				.andExpect(status().isOk());
-		verify(orderService).placeOrder(any(OrderCreateCommand.class));
-	}
+        mockMvc.perform(post("/api/order")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+        verify(orderService).placeOrder(any(OrderCreateCommand.class));
+    }
 }

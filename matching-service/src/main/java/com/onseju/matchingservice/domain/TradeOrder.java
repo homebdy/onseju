@@ -16,13 +16,9 @@ public class TradeOrder {
     private final Long id;
 
     private final CompanyCode companyCode;
-
-    private Type type;
-
-    private OrderStatus status;
-
     private final BigDecimal totalQuantity;
-
+    private Type type;
+    private OrderStatus status;
     private AtomicReference<BigDecimal> remainingQuantity;
 
     private BigDecimal price;

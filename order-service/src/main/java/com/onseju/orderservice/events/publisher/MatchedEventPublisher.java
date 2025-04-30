@@ -34,10 +34,10 @@ public class MatchedEventPublisher extends AbstractEventPublisher<MatchedOrderUp
 
     private void publishToUserService(MatchedOrderUpdateEvent event) {
         sendMessage(
-            RabbitMQConfig.ONSEJU_EXCHANGE,
-            RabbitMQConfig.USER_UPDATE_KEY,
-            event,
-            "user update -" + event.id()
+                RabbitMQConfig.ONSEJU_EXCHANGE,
+                RabbitMQConfig.USER_UPDATE_KEY,
+                event,
+                "user update -" + event.id()
         );
     }
 }

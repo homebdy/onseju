@@ -9,25 +9,25 @@ import org.springframework.stereotype.Component;
 @Component
 public class TradeHistoryMapper {
 
-	public TradeHistory toEntity(final MatchedEvent event) {
-		return TradeHistory.builder()
-				.companyCode(event.companyCode())
-				.sellOrderId(event.sellOrderId())
-				.buyOrderId(event.buyOrderId())
-				.price(event.price())
-				.quantity(event.quantity())
-				.tradeTime(event.tradeAt())
-				.build();
-	}
+    public TradeHistory toEntity(final MatchedEvent event) {
+        return TradeHistory.builder()
+                .companyCode(event.companyCode())
+                .sellOrderId(event.sellOrderId())
+                .buyOrderId(event.buyOrderId())
+                .price(event.price())
+                .quantity(event.quantity())
+                .tradeTime(event.tradeAt())
+                .build();
+    }
 
-	public TradeHistoryResponse toResponse(final TradeHistory tradeHistory, final Order order) {
-		return new TradeHistoryResponse(
-				order.getId(),
-				order.getCompanyCode(),
-				order.getType(),
-				tradeHistory.getPrice(),
-				tradeHistory.getQuantity(),
-				tradeHistory.getCreatedDateTime()
-		);
-	}
+    public TradeHistoryResponse toResponse(final TradeHistory tradeHistory, final Order order) {
+        return new TradeHistoryResponse(
+                order.getId(),
+                order.getCompanyCode(),
+                order.getType(),
+                tradeHistory.getPrice(),
+                tradeHistory.getQuantity(),
+                tradeHistory.getCreatedDateTime()
+        );
+    }
 }

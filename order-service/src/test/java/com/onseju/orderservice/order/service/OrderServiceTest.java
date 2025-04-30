@@ -33,188 +33,188 @@ import static org.mockito.Mockito.when;
 
 class OrderServiceTest {
 
-	OrderService orderService;
-	StubCompanyRepository companyRepository = new StubCompanyRepository();
-	FakeOrderRepository orderRepository = new FakeOrderRepository();
-	OrderMapper orderMapper = new OrderMapper();
-	CreatedOrderEventPublisher eventPublisher;
-	MatchedEventPublisher matchedEventPublisher;
-	UserServiceClient userServiceClient;
-	TsidGenerator tsidGenerator;
-	ClosingPriceService closingPriceService;
+    OrderService orderService;
+    StubCompanyRepository companyRepository = new StubCompanyRepository();
+    FakeOrderRepository orderRepository = new FakeOrderRepository();
+    OrderMapper orderMapper = new OrderMapper();
+    CreatedOrderEventPublisher eventPublisher;
+    MatchedEventPublisher matchedEventPublisher;
+    UserServiceClient userServiceClient;
+    TsidGenerator tsidGenerator;
+    ClosingPriceService closingPriceService;
 
-	@BeforeEach
-	void setUp() {
-		eventPublisher = Mockito.mock(CreatedOrderEventPublisher.class);
-		matchedEventPublisher = Mockito.mock(MatchedEventPublisher.class);
-		userServiceClient = Mockito.mock(UserServiceClient.class);
-		tsidGenerator = Mockito.mock(TsidGenerator.class);
-		closingPriceService = Mockito.mock(ClosingPriceService.class);
-		orderService = new OrderService(
-				orderRepository, companyRepository, eventPublisher, matchedEventPublisher,
-				userServiceClient, orderMapper, tsidGenerator);
-	}
+    @BeforeEach
+    void setUp() {
+        eventPublisher = Mockito.mock(CreatedOrderEventPublisher.class);
+        matchedEventPublisher = Mockito.mock(MatchedEventPublisher.class);
+        userServiceClient = Mockito.mock(UserServiceClient.class);
+        tsidGenerator = Mockito.mock(TsidGenerator.class);
+        closingPriceService = Mockito.mock(ClosingPriceService.class);
+        orderService = new OrderService(
+                orderRepository, companyRepository, eventPublisher, matchedEventPublisher,
+                userServiceClient, orderMapper, tsidGenerator);
+    }
 
-	@Nested
-	class CreateOrderTest {
+    private OrderCreateCommand createOrderCreateCommand(
+            Type type,
+            BigDecimal totalQuantity,
+            BigDecimal price,
+            String username
+    ) {
+        return new OrderCreateCommand(
+                "005930",
+                type,
+                totalQuantity,
+                price,
+                username
+        );
+    }
 
-		@BeforeEach
-		void setUp() {
-			// BoundaryTests 클래스의 모든 테스트에 대한 공통 설정
-			when(closingPriceService.getClosingPrice(anyString())).thenReturn(new BigDecimal(1000));
-		}
+    @Nested
+    class CreateOrderTest {
 
-		@Test
-		@DisplayName("TC20.2.1 주문 생성 테스트")
-		void testPlaceOrder() {
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), new BigDecimal(1000),
-					"username");
-			when(userServiceClient.validateOrder(any()))
-					.thenReturn(new OrderValidationResponse(1L, true));
-			assertThatNoException().isThrownBy(() -> orderService.placeOrder(params));
-		}
+        @BeforeEach
+        void setUp() {
+            // BoundaryTests 클래스의 모든 테스트에 대한 공통 설정
+            when(closingPriceService.getClosingPrice(anyString())).thenReturn(new BigDecimal(1000));
+        }
 
-		@Test
-		@DisplayName("주문 생성 성공 테스트")
-		void placeOrderSuccess() {
-			// given
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), new BigDecimal(1000),
-					"username");
-			when(userServiceClient.validateOrder(any()))
-					.thenReturn(new OrderValidationResponse(1L, true));
+        @Test
+        @DisplayName("TC20.2.1 주문 생성 테스트")
+        void testPlaceOrder() {
+            OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), new BigDecimal(1000),
+                    "username");
+            when(userServiceClient.validateOrder(any()))
+                    .thenReturn(new OrderValidationResponse(1L, true));
+            assertThatNoException().isThrownBy(() -> orderService.placeOrder(params));
+        }
 
-			OrderResponse expected = new OrderResponse(
-					1L,
-					params.companyCode(),
-					params.type(),
-					params.totalQuantity(),
-					params.price()
-			);
-			OrderResponse response = orderService.placeOrder(params);
-			assertThat(response.companyCode()).isEqualTo(expected.companyCode());
-			assertThat(response.type()).isEqualTo(expected.type());
-			assertThat(response.totalQuantity()).isEqualTo(expected.totalQuantity());
-			assertThat(response.price()).isEqualTo(expected.price());
-		}
-	}
+        @Test
+        @DisplayName("주문 생성 성공 테스트")
+        void placeOrderSuccess() {
+            // given
+            OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), new BigDecimal(1000),
+                    "username");
+            when(userServiceClient.validateOrder(any()))
+                    .thenReturn(new OrderValidationResponse(1L, true));
 
-	@Nested
-	@DisplayName("입력된 가격에 대한 검증을 진행한다.")
-	class BoundaryTests {
+            OrderResponse expected = new OrderResponse(
+                    1L,
+                    params.companyCode(),
+                    params.type(),
+                    params.totalQuantity(),
+                    params.price()
+            );
+            OrderResponse response = orderService.placeOrder(params);
+            assertThat(response.companyCode()).isEqualTo(expected.companyCode());
+            assertThat(response.type()).isEqualTo(expected.type());
+            assertThat(response.totalQuantity()).isEqualTo(expected.totalQuantity());
+            assertThat(response.price()).isEqualTo(expected.price());
+        }
+    }
 
-		@BeforeEach
-		void setUp() {
-			// BoundaryTests 클래스의 모든 테스트에 대한 공통 설정
-			when(closingPriceService.getClosingPrice(anyString())).thenReturn(new BigDecimal(1000));
-		}
+    @Nested
+    @DisplayName("입력된 가격에 대한 검증을 진행한다.")
+    class BoundaryTests {
 
-		@Test
-		@DisplayName("입력된 가격이 종가 기준 상향 30% 이상일 경우 정상적으로 처리한다.")
-		void placeOrderWhenPriceWithinUpperLimit() {
-			// given
-			BigDecimal price = new BigDecimal(1300);
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), price, "username");
-			when(userServiceClient.validateOrder(any()))
-					.thenReturn(new OrderValidationResponse(1L, true));
+        @BeforeEach
+        void setUp() {
+            // BoundaryTests 클래스의 모든 테스트에 대한 공통 설정
+            when(closingPriceService.getClosingPrice(anyString())).thenReturn(new BigDecimal(1000));
+        }
 
-			// when, then
-			assertThatNoException().isThrownBy(() -> orderService.placeOrder(params));
-		}
+        @Test
+        @DisplayName("입력된 가격이 종가 기준 상향 30% 이상일 경우 정상적으로 처리한다.")
+        void placeOrderWhenPriceWithinUpperLimit() {
+            // given
+            BigDecimal price = new BigDecimal(1300);
+            OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), price, "username");
+            when(userServiceClient.validateOrder(any()))
+                    .thenReturn(new OrderValidationResponse(1L, true));
 
-		@Test
-		@DisplayName("입력된 가격이 종가 기준 상향 30%를 초과할 경우 예외가 발생한다.")
-		void throwExceptionWhenPriceExceedsUpperLimit() {
-			// given
-			BigDecimal price = new BigDecimal(1301);
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_SELL, new BigDecimal(10), price, "username");
+            // when, then
+            assertThatNoException().isThrownBy(() -> orderService.placeOrder(params));
+        }
 
-			// when, then
-			assertThatThrownBy(() -> orderService.placeOrder(params)).isInstanceOf(PriceOutOfRangeException.class);
-		}
+        @Test
+        @DisplayName("입력된 가격이 종가 기준 상향 30%를 초과할 경우 예외가 발생한다.")
+        void throwExceptionWhenPriceExceedsUpperLimit() {
+            // given
+            BigDecimal price = new BigDecimal(1301);
+            OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_SELL, new BigDecimal(10), price, "username");
 
-		@Test
-		@DisplayName("입력된 가격이 종가 기준 하향 30% 이하일 경우 정상적으로 처리한다.")
-		void placeOrderWhenPriceWithinLowerLimit() {
-			// given
-			BigDecimal price = new BigDecimal(700);
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, "username");
-			when(userServiceClient.validateOrder(any()))
-					.thenReturn(new OrderValidationResponse(1L, true));
+            // when, then
+            assertThatThrownBy(() -> orderService.placeOrder(params)).isInstanceOf(PriceOutOfRangeException.class);
+        }
 
-			// when, then
-			assertThatNoException().isThrownBy(() -> orderService.placeOrder(params));
-		}
+        @Test
+        @DisplayName("입력된 가격이 종가 기준 하향 30% 이하일 경우 정상적으로 처리한다.")
+        void placeOrderWhenPriceWithinLowerLimit() {
+            // given
+            BigDecimal price = new BigDecimal(700);
+            OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, "username");
+            when(userServiceClient.validateOrder(any()))
+                    .thenReturn(new OrderValidationResponse(1L, true));
 
-		@Test
-		@DisplayName("입력된 가격이 종가 기준 하향 30% 미만일 경우 예외가 발생한다.")
-		void throwExceptionWhenPriceIsBelowLowerLimit() {
-			// given
-			BigDecimal price = new BigDecimal(699);
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, "username");
+            // when, then
+            assertThatNoException().isThrownBy(() -> orderService.placeOrder(params));
+        }
 
-			// when, then
-			assertThatThrownBy(() -> orderService.placeOrder(params))
-					.isInstanceOf(PriceOutOfRangeException.class);
-		}
+        @Test
+        @DisplayName("입력된 가격이 종가 기준 하향 30% 미만일 경우 예외가 발생한다.")
+        void throwExceptionWhenPriceIsBelowLowerLimit() {
+            // given
+            BigDecimal price = new BigDecimal(699);
+            OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, "username");
 
-		@Test
-		@DisplayName("입력 가격이 음수일 경우 예외가 발생한다.")
-		void throwExceptionWhenInvalidPrice() {
-			// given
-			BigDecimal price = new BigDecimal(-1);
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, "username");
+            // when, then
+            assertThatThrownBy(() -> orderService.placeOrder(params))
+                    .isInstanceOf(PriceOutOfRangeException.class);
+        }
 
-			// when, then
-			assertThatThrownBy(() -> orderService.placeOrder(params)).isInstanceOf(OrderPriceQuotationException.class);
-		}
+        @Test
+        @DisplayName("입력 가격이 음수일 경우 예외가 발생한다.")
+        void throwExceptionWhenInvalidPrice() {
+            // given
+            BigDecimal price = new BigDecimal(-1);
+            OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, "username");
 
-		@Test
-		@DisplayName("유효하지 않은 단위의 가격이 입력될 경우 예외가 발생한다.")
-		void throwExceptionWhenInvalidUnitPrice() {
-			// given
-			BigDecimal price = new BigDecimal("0.5");
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, "username");
+            // when, then
+            assertThatThrownBy(() -> orderService.placeOrder(params)).isInstanceOf(OrderPriceQuotationException.class);
+        }
 
-			// when, then
-			assertThatThrownBy(() -> orderService.placeOrder(params)).isInstanceOf(OrderPriceQuotationException.class);
-		}
-	}
+        @Test
+        @DisplayName("유효하지 않은 단위의 가격이 입력될 경우 예외가 발생한다.")
+        void throwExceptionWhenInvalidUnitPrice() {
+            // given
+            BigDecimal price = new BigDecimal("0.5");
+            OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, "username");
 
-	@Nested
-	@DisplayName("user-service와의 통신 테스트")
-	public class CommunicationWithUserService {
+            // when, then
+            assertThatThrownBy(() -> orderService.placeOrder(params)).isInstanceOf(OrderPriceQuotationException.class);
+        }
+    }
 
-		@Test
-		@DisplayName("외부 모듈과 통신을 실패할 경우 예외를 발생시킨다.")
-		void communicationWithUserService() {
-			// given
-			BigDecimal price = new BigDecimal(1300);
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), price, "username");
+    @Nested
+    @DisplayName("user-service와의 통신 테스트")
+    public class CommunicationWithUserService {
 
-			// closingPriceService 모의 설정 추가
-			when(closingPriceService.getClosingPrice(anyString())).thenReturn(new BigDecimal(1000));
+        @Test
+        @DisplayName("외부 모듈과 통신을 실패할 경우 예외를 발생시킨다.")
+        void communicationWithUserService() {
+            // given
+            BigDecimal price = new BigDecimal(1300);
+            OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), price, "username");
 
-			when(userServiceClient.validateOrder(any()))
-					.thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+            // closingPriceService 모의 설정 추가
+            when(closingPriceService.getClosingPrice(anyString())).thenReturn(new BigDecimal(1000));
 
-			// when, then
-			assertThatThrownBy(() -> orderService.placeOrder(params))
-					.isInstanceOf(HttpClientErrorException.class);
-		}
-	}
+            when(userServiceClient.validateOrder(any()))
+                    .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
-	private OrderCreateCommand createOrderCreateCommand(
-			Type type,
-			BigDecimal totalQuantity,
-			BigDecimal price,
-			String username
-	) {
-		return new OrderCreateCommand(
-				"005930",
-				type,
-				totalQuantity,
-				price,
-				username
-		);
-	}
+            // when, then
+            assertThatThrownBy(() -> orderService.placeOrder(params))
+                    .isInstanceOf(HttpClientErrorException.class);
+        }
+    }
 }

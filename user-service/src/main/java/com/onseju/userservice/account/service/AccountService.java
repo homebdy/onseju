@@ -17,47 +17,47 @@ import java.util.function.LongSupplier;
 @Slf4j
 public class AccountService {
 
-	private final AccountRepository accountRepository;
+    private final AccountRepository accountRepository;
 
-	public void updateAccountAfterTrade(final MatchedOrderUpdateEvent event) {
-		optimizeLoop(() -> {
-			Account account = accountRepository.getByMemberId(event.memberId());
-			account.processOrder(
-					event.type(),
-					event.price(),
-					event.quantity()
-			);
-			accountRepository.save(account);
-			return account.getId();
-		});
-	}
+    public void updateAccountAfterTrade(final MatchedOrderUpdateEvent event) {
+        optimizeLoop(() -> {
+            Account account = accountRepository.getByMemberId(event.memberId());
+            account.processOrder(
+                    event.type(),
+                    event.price(),
+                    event.quantity()
+            );
+            accountRepository.save(account);
+            return account.getId();
+        });
+    }
 
-	public void reserve(final CreatedOrderAccountUpdateDto dto) {
-		optimizeLoop(() -> {
-			if (dto.type().isBuy()) {
-				Account account = accountRepository.getByMemberId(dto.memberId());
-				account.validateDepositBalance(dto.price().multiply(dto.totalQuantity()));
-				account.processReservedOrder(dto.price().multiply(dto.totalQuantity()));
-				accountRepository.save(account);
-				return account.getId();
-			}
-			return accountRepository.getByMemberId(dto.memberId()).getId();
-		});
-	}
+    public void reserve(final CreatedOrderAccountUpdateDto dto) {
+        optimizeLoop(() -> {
+            if (dto.type().isBuy()) {
+                Account account = accountRepository.getByMemberId(dto.memberId());
+                account.validateDepositBalance(dto.price().multiply(dto.totalQuantity()));
+                account.processReservedOrder(dto.price().multiply(dto.totalQuantity()));
+                accountRepository.save(account);
+                return account.getId();
+            }
+            return accountRepository.getByMemberId(dto.memberId()).getId();
+        });
+    }
 
 
-	private Long optimizeLoop(LongSupplier supplier) {
-		while (true) {
-			AtomicInteger repeat = new AtomicInteger();
-			try {
-				return supplier.getAsLong();
-			} catch (ObjectOptimisticLockingFailureException ex) {
-				try {
-					Thread.sleep((long) Math.pow(200, repeat.getAndIncrement()));
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-			}
-		}
-	}
+    private Long optimizeLoop(LongSupplier supplier) {
+        while (true) {
+            AtomicInteger repeat = new AtomicInteger();
+            try {
+                return supplier.getAsLong();
+            } catch (ObjectOptimisticLockingFailureException ex) {
+                try {
+                    Thread.sleep((long) Math.pow(200, repeat.getAndIncrement()));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+    }
 }
