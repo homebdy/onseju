@@ -75,12 +75,12 @@ class MatchingEngineTest {
         assertThat(order3.getType()).isEqualTo(Type.MARKET_BUY);
     }
 
-    private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long accountId) {
+    private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long memberId) {
         return TradeOrder.builder()
                 .id(id)
                 .type(type)
                 .price(price)
-                .accountId(accountId)
+                .memberId(memberId)
                 .companyCode(new CompanyCode("005930"))
                 .status(OrderStatus.ACTIVE)
                 .totalQuantity(quantity)

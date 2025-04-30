@@ -5,7 +5,7 @@ import com.onseju.matchingservice.domain.OrderStatus;
 import com.onseju.matchingservice.domain.TradeOrder;
 import com.onseju.matchingservice.domain.Type;
 import com.onseju.matchingservice.engine.orderbook.SellOrderBook;
-import com.onseju.matchingservice.events.MatchedEvent;
+import com.onseju.matchingservice.events.dto.MatchedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -91,9 +91,9 @@ public class SellOrderBookTest {
         assertThat(buyOrder.getRemainingQuantity().get()).isEqualTo(new BigDecimal("5"));
         responses.forEach(result -> {
             assertThat(result.sellOrderId()).isEqualTo(sellOrder.getId());
-            assertThat(result.sellAccountId()).isEqualTo(sellOrder.getAccountId());
+            assertThat(result.sellMemberId()).isEqualTo(sellOrder.getMemberId());
             assertThat(result.buyOrderId()).isEqualTo(buyOrder.getId());
-            assertThat(result.buyAccountId()).isEqualTo(buyOrder.getAccountId());
+            assertThat(result.buyMemberId()).isEqualTo(buyOrder.getMemberId());
             assertThat(result.price()).isEqualTo(buyOrder.getPrice());
             assertThat(result.quantity()).isEqualTo(
                     buyOrder.getTotalQuantity().subtract(buyOrder.getRemainingQuantity().get()));
@@ -169,12 +169,12 @@ public class SellOrderBookTest {
     }
 
 
-    private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long accountId) {
+    private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long memberId) {
         return TradeOrder.builder()
                 .id(id)
                 .type(type)
                 .price(price)
-                .accountId(accountId)
+                .memberId(memberId)
                 .companyCode(new CompanyCode("005930"))
                 .status(OrderStatus.ACTIVE)
                 .totalQuantity(quantity)
@@ -276,13 +276,13 @@ public class SellOrderBookTest {
         assertThat(result).isFalse();
     }
 
-    private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long accountId,
+    private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long memberId,
                                    LocalDateTime createdDateTime) {
         return TradeOrder.builder()
                 .id(id)
                 .type(type)
                 .price(price)
-                .accountId(accountId)
+                .memberId(memberId)
                 .companyCode(new CompanyCode("005930"))
                 .status(OrderStatus.ACTIVE)
                 .totalQuantity(quantity)

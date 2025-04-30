@@ -29,14 +29,14 @@ public class TradeOrder {
 
     private Long timestamp;
 
-    private Long accountId;
+    private Long memberId;
 
     // 입력 주문과 같은 계정으로부터의 주문인지 확인
-    public boolean isSameAccount(Long otherAccountId) {
-        if (otherAccountId == null) {
+    public boolean isSameMember(final Long memberId) {
+        if (memberId == null) {
             return false;
         }
-        return otherAccountId.equals(this.accountId);
+        return memberId.equals(this.memberId);
     }
 
     // 남은 양 감소

@@ -5,7 +5,7 @@ import com.onseju.matchingservice.domain.TradeOrder;
 import com.onseju.matchingservice.engine.orderbook.AbstractOrderBook;
 import com.onseju.matchingservice.engine.orderbook.BuyOrderBook;
 import com.onseju.matchingservice.engine.orderbook.SellOrderBook;
-import com.onseju.matchingservice.events.MatchedEvent;
+import com.onseju.matchingservice.events.dto.MatchedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

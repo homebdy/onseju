@@ -1,7 +1,7 @@
 package com.onseju.matchingservice.engine;
 
 import com.onseju.matchingservice.domain.TradeOrder;
-import com.onseju.matchingservice.events.MatchedEvent;
+import com.onseju.matchingservice.events.dto.MatchedEvent;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ public class OrderStorage {
         List<MatchedEvent> results = new ArrayList<>();
         while (iterator.hasNext() && incomingOrder.hasRemainingQuantity()) {
             final TradeOrder foundOrder = iterator.next();
-            if (foundOrder.isSameAccount(incomingOrder.getAccountId())) {
+            if (foundOrder.isSameMember(incomingOrder.getMemberId())) {
                 continue;
             }
 

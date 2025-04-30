@@ -3,7 +3,7 @@ package com.onseju.matchingservice.engine.orderbook;
 import com.onseju.matchingservice.domain.Price;
 import com.onseju.matchingservice.domain.TradeOrder;
 import com.onseju.matchingservice.engine.OrderStorage;
-import com.onseju.matchingservice.events.MatchedEvent;
+import com.onseju.matchingservice.events.dto.MatchedEvent;
 
 import java.util.Collection;
 import java.util.Comparator;

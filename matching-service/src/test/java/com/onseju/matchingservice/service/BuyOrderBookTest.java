@@ -5,7 +5,7 @@ import com.onseju.matchingservice.domain.OrderStatus;
 import com.onseju.matchingservice.domain.TradeOrder;
 import com.onseju.matchingservice.domain.Type;
 import com.onseju.matchingservice.engine.orderbook.BuyOrderBook;
-import com.onseju.matchingservice.events.MatchedEvent;
+import com.onseju.matchingservice.events.dto.MatchedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -69,9 +69,9 @@ public class BuyOrderBookTest {
         assertThat(responses).hasSize(1);
         responses.forEach(result -> {
             assertThat(result.sellOrderId()).isEqualTo(sellOrder.getId());
-            assertThat(result.sellAccountId()).isEqualTo(sellOrder.getAccountId());
+            assertThat(result.sellMemberId()).isEqualTo(sellOrder.getMemberId());
             assertThat(result.buyOrderId()).isEqualTo(buyOrder1.getId());
-            assertThat(result.buyAccountId()).isEqualTo(buyOrder1.getAccountId());
+            assertThat(result.buyMemberId()).isEqualTo(buyOrder1.getMemberId());
             assertThat(result.price()).isEqualTo(sellOrder.getPrice());
             assertThat(result.quantity()).isEqualTo(sellOrder.getTotalQuantity());
         });
@@ -205,8 +205,8 @@ public class BuyOrderBookTest {
         buyOrderBook.add(buyOrder2);
         List<MatchedEvent> results = new ArrayList<>(buyOrderBook.matchOrder(sellOrder));
 
-        assertThat(results.get(0).buyAccountId()).isEqualTo(buyOrder2.getAccountId());
-        assertThat(results.get(0).sellAccountId()).isEqualTo(sellOrder.getAccountId());
+        assertThat(results.get(0).buyMemberId()).isEqualTo(buyOrder2.getMemberId());
+        assertThat(results.get(0).sellMemberId()).isEqualTo(sellOrder.getMemberId());
         assertThat(buyOrder1.getRemainingQuantity().get()).isEqualTo(new BigDecimal(5));
         assertThat(buyOrder2.getRemainingQuantity().get()).isEqualTo(new BigDecimal(5));
         assertThat(sellOrder.getRemainingQuantity().get()).isEqualTo(BigDecimal.ZERO);
@@ -265,12 +265,12 @@ public class BuyOrderBookTest {
         assertThat(result).isFalse();
     }
 
-    private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long accountId) {
+    private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long memberId) {
         return TradeOrder.builder()
                 .id(id)
                 .type(type)
                 .price(price)
-                .accountId(accountId)
+                .memberId(memberId)
                 .companyCode(new CompanyCode("005930"))
                 .status(OrderStatus.ACTIVE)
                 .totalQuantity(quantity)
@@ -279,13 +279,13 @@ public class BuyOrderBookTest {
                 .build();
     }
 
-    private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long accountId,
+    private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long memberId,
                                    LocalDateTime createdDateTime) {
         return TradeOrder.builder()
                 .id(id)
                 .type(type)
                 .price(price)
-                .accountId(accountId)
+                .memberId(memberId)
                 .companyCode(new CompanyCode("005930"))
                 .status(OrderStatus.ACTIVE)
                 .totalQuantity(quantity)

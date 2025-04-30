@@ -2,8 +2,8 @@ package com.onseju.matchingservice.service;
 
 import com.onseju.matchingservice.domain.TradeOrder;
 import com.onseju.matchingservice.engine.MatchingEngine;
-import com.onseju.matchingservice.events.MatchedEvent;
-import com.onseju.matchingservice.events.OrderCreatedEvent;
+import com.onseju.matchingservice.events.dto.MatchedEvent;
+import com.onseju.matchingservice.events.dto.CreatedOrderEvent;
 import com.onseju.matchingservice.events.publisher.EventPublisher;
 import com.onseju.matchingservice.mapper.MatchingMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class MatchingService {
     private final EventPublisher<MatchedEvent> matchedEventPublisher;
 
     // 매칭 엔진으로 이벤트 전송 후, 매칭된 주문이 있을 경우 이벤트 발생
-    public void matchOrder(final OrderCreatedEvent event) {
+    public void matchOrder(final CreatedOrderEvent event) {
         final TradeOrder tradeOrder = matchingMapper.toTradeOrder(event);
         Collection<MatchedEvent> matchedEvents = matchingEngine.processOrder(tradeOrder);
         processMatchedEvents(matchedEvents);

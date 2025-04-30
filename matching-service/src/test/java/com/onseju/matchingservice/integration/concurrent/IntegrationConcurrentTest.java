@@ -5,7 +5,7 @@ import com.onseju.matchingservice.domain.OrderStatus;
 import com.onseju.matchingservice.domain.TradeOrder;
 import com.onseju.matchingservice.domain.Type;
 import com.onseju.matchingservice.engine.MatchingEngine;
-import com.onseju.matchingservice.events.MatchedEvent;
+import com.onseju.matchingservice.events.dto.MatchedEvent;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -109,12 +109,12 @@ class IntegrationConcurrentTest {
 		return orders;
 	}
 
-	private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long accountId) {
+	private TradeOrder createOrder(Long id, Type type, BigDecimal price, BigDecimal quantity, Long memberId) {
 		return TradeOrder.builder()
 				.id(id)
 				.type(type)
 				.price(price)
-				.accountId(accountId)
+				.memberId(memberId)
 				.companyCode(new CompanyCode("005930"))
 				.status(OrderStatus.ACTIVE)
 				.totalQuantity(quantity)

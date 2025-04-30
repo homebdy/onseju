@@ -1,4 +1,4 @@
-package com.onseju.matchingservice.events;
+package com.onseju.matchingservice.events.dto;
 
 import com.onseju.matchingservice.domain.TradeOrder;
 
@@ -10,9 +10,9 @@ public record MatchedEvent(
         UUID id,
         String companyCode,
         Long buyOrderId,
-        Long buyAccountId,
+        Long buyMemberId,
         Long sellOrderId,
-        Long sellAccountId,
+        Long sellMemberId,
         BigDecimal quantity,
         BigDecimal price,
         Long tradeAt
@@ -39,9 +39,9 @@ public record MatchedEvent(
                 UUID.randomUUID(),
                 buyOrder.getCompanyCodeValue(),
                 buyOrder.getId(),
-                buyOrder.getAccountId(),
+                buyOrder.getMemberId(),
                 sellOrder.getId(),
-                sellOrder.getAccountId(),
+                sellOrder.getMemberId(),
                 matchedQuantity,
                 buyOrder.calculatePrice(sellOrder),
                 Instant.now().toEpochMilli()
