@@ -25,7 +25,7 @@ class OrderTest {
 				.timestamp(now)
 				.createdDateTime(LocalDateTime.now())
 				.updatedDateTime(LocalDateTime.now())
-				.accountId(1L)
+				.memberId(1L)
 				.build();
 
 		assertThat(order).isNotNull();

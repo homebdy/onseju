@@ -57,14 +57,15 @@ public class Order extends BaseEntity {
 
 	// 체결 처리 (수량 감소 및 상태 업데이트)
 	public void decreaseRemainingQuantity(final BigDecimal quantity) {
-		if (quantity.compareTo(remainingQuantity) < 0) {
+		if (quantity.compareTo(remainingQuantity) > 0) {
 			throw new ShortageOfRemainingQuantityException();
 		}
+		remainingQuantity = remainingQuantity.subtract(quantity);
 		changeStatusIfOrderComplete();
 	}
 
 	private void changeStatusIfOrderComplete() {
-		if (this.remainingQuantity.compareTo(BigDecimal.ZERO) == 0) {
+		if (remainingQuantity.compareTo(BigDecimal.ZERO) == 0) {
 			this.status = OrderStatus.COMPLETE;
 		}
 

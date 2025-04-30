@@ -27,7 +27,8 @@ class OrderMapperTest {
 				"005930",
 				Type.LIMIT_BUY,
 				new BigDecimal(100),
-				new BigDecimal(1000), 1L);
+				new BigDecimal(1000),
+				"username");
 
 		// when
 		Order order = orderMapper.toEntity(1L, dto, 1L);
@@ -51,7 +52,7 @@ class OrderMapperTest {
 			.remainingQuantity(new BigDecimal(100))
 			.price(new BigDecimal(50000))
 			.timestamp(Instant.now().toEpochMilli())
-			.accountId(1L)
+			.memberId(1L)
 			.build();
 
 		// when
@@ -82,7 +83,7 @@ class OrderMapperTest {
 			.remainingQuantity(new BigDecimal(100))
 			.price(new BigDecimal(50000))
 			.timestamp(Instant.now().toEpochMilli())
-			.accountId(1L)
+			.memberId(1L)
 			.build();
 
 		// when

@@ -68,7 +68,7 @@ class OrderServiceTest {
 		@DisplayName("TC20.2.1 주문 생성 테스트")
 		void testPlaceOrder() {
 			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), new BigDecimal(1000),
-					1L);
+					"username");
 			when(userServiceClient.validateOrder(any()))
 					.thenReturn(new OrderValidationResponse(1L, true));
 			assertThatNoException().isThrownBy(() -> orderService.placeOrder(params));
@@ -79,7 +79,7 @@ class OrderServiceTest {
 		void placeOrderSuccess() {
 			// given
 			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), new BigDecimal(1000),
-					1L);
+					"username");
 			when(userServiceClient.validateOrder(any()))
 					.thenReturn(new OrderValidationResponse(1L, true));
 
@@ -113,7 +113,7 @@ class OrderServiceTest {
 		void placeOrderWhenPriceWithinUpperLimit() {
 			// given
 			BigDecimal price = new BigDecimal(1300);
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), price, "username");
 			when(userServiceClient.validateOrder(any()))
 					.thenReturn(new OrderValidationResponse(1L, true));
 
@@ -126,7 +126,7 @@ class OrderServiceTest {
 		void throwExceptionWhenPriceExceedsUpperLimit() {
 			// given
 			BigDecimal price = new BigDecimal(1301);
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_SELL, new BigDecimal(10), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_SELL, new BigDecimal(10), price, "username");
 
 			// when, then
 			assertThatThrownBy(() -> orderService.placeOrder(params)).isInstanceOf(PriceOutOfRangeException.class);
@@ -137,7 +137,7 @@ class OrderServiceTest {
 		void placeOrderWhenPriceWithinLowerLimit() {
 			// given
 			BigDecimal price = new BigDecimal(700);
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, "username");
 			when(userServiceClient.validateOrder(any()))
 					.thenReturn(new OrderValidationResponse(1L, true));
 
@@ -150,7 +150,7 @@ class OrderServiceTest {
 		void throwExceptionWhenPriceIsBelowLowerLimit() {
 			// given
 			BigDecimal price = new BigDecimal(699);
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, "username");
 
 			// when, then
 			assertThatThrownBy(() -> orderService.placeOrder(params))
@@ -162,7 +162,7 @@ class OrderServiceTest {
 		void throwExceptionWhenInvalidPrice() {
 			// given
 			BigDecimal price = new BigDecimal(-1);
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, "username");
 
 			// when, then
 			assertThatThrownBy(() -> orderService.placeOrder(params)).isInstanceOf(OrderPriceQuotationException.class);
@@ -173,7 +173,7 @@ class OrderServiceTest {
 		void throwExceptionWhenInvalidUnitPrice() {
 			// given
 			BigDecimal price = new BigDecimal("0.5");
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(10), price, "username");
 
 			// when, then
 			assertThatThrownBy(() -> orderService.placeOrder(params)).isInstanceOf(OrderPriceQuotationException.class);
@@ -189,7 +189,7 @@ class OrderServiceTest {
 		void communicationWithUserService() {
 			// given
 			BigDecimal price = new BigDecimal(1300);
-			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), price, 1L);
+			OrderCreateCommand params = createOrderCreateCommand(Type.LIMIT_BUY, new BigDecimal(1), price, "username");
 
 			// closingPriceService 모의 설정 추가
 			when(closingPriceService.getClosingPrice(anyString())).thenReturn(new BigDecimal(1000));
@@ -207,14 +207,14 @@ class OrderServiceTest {
 			Type type,
 			BigDecimal totalQuantity,
 			BigDecimal price,
-			Long memberId
+			String username
 	) {
 		return new OrderCreateCommand(
 				"005930",
 				type,
 				totalQuantity,
 				price,
-				memberId
+				username
 		);
 	}
 }

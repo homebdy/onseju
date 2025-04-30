@@ -74,7 +74,7 @@ class UserServiceClientTest {
 				Type.LIMIT_BUY,
 				new BigDecimal(10),
 				new BigDecimal(1000),
-				1L
+				"username"
 		);
 
 		// Mock 서비스 구현 설정
@@ -83,7 +83,7 @@ class UserServiceClientTest {
 				(StreamObserver<GrpcValidateResponse>) invocation.getArguments()[1];
 
 			GrpcValidateResponse response = GrpcValidateResponse.newBuilder()
-				.setAccountId(456L)
+				.setMemberId(1L)
 				.setResult(true)
 				.setMessage("검증 성공")
 				.build();
@@ -98,7 +98,7 @@ class UserServiceClientTest {
 
 		// Then
 		assertNotNull(response);
-		assertEquals(456L, response.accountId());
+		assertEquals(1L, response.memberId());
 		assertTrue(response.result());
 
 		// 요청 검증
@@ -111,7 +111,7 @@ class UserServiceClientTest {
 		assertEquals(dto.type().name(), capturedRequest.getType());
 		assertEquals(dto.totalQuantity().toString(), capturedRequest.getTotalQuantity());
 		assertEquals(dto.price().toString(), capturedRequest.getPrice());
-		assertEquals(dto.memberId(), capturedRequest.getMemberId());
+		assertEquals(dto.username(), capturedRequest.getUsername());
 	}
 
 	@Test
@@ -122,7 +122,7 @@ class UserServiceClientTest {
 				Type.LIMIT_BUY,
 				new BigDecimal(10),
 				new BigDecimal(1000),
-				1L
+				"username"
 		);
 
 		// Mock 서비스 구현 설정 - 실패 응답
@@ -131,7 +131,7 @@ class UserServiceClientTest {
 				(StreamObserver<GrpcValidateResponse>) invocation.getArguments()[1];
 
 			GrpcValidateResponse response = GrpcValidateResponse.newBuilder()
-				.setAccountId(0L)
+				.setMemberId(0L)
 				.setResult(false)
 				.setMessage("잔액 부족")
 				.build();
@@ -146,7 +146,7 @@ class UserServiceClientTest {
 
 		// Then
 		assertNotNull(response);
-		assertEquals(0L, response.accountId());
+		assertEquals(0L, response.memberId());
 		assertFalse(response.result());
 	}
 
@@ -158,7 +158,7 @@ class UserServiceClientTest {
 				Type.LIMIT_BUY,
 				new BigDecimal(10),
 				new BigDecimal(1000),
-				1L
+				"username"
 		);
 
 		// Mock 서비스 구현 설정 - 예외 발생
